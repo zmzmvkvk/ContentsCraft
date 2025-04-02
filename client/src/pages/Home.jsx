@@ -23,38 +23,38 @@ export default function Home() {
     onSettled: () => setLoading(false),
   });
 
-  // const handleSearch = () => {
-  //   if (!query.trim()) return;
-  //   setLoading(true);
-  //   crawlMutation.mutate({ keyword: query });
-  // };
-
   const handleSearch = () => {
     if (!query.trim()) return;
-
-    const mock = [
-      {
-        id: "abc123",
-        title: "🔥 터질 영상 테스트",
-        thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail",
-        views: 3200000,
-        platform: "youtube",
-        uploadedAt: "2025-03-30",
-        url: "https://youtube.com/watch?v=abc123",
-      },
-      {
-        id: "xyz456",
-        title: "🚀 초급등 영상",
-        thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail+2",
-        views: 5100000,
-        platform: "tiktok",
-        uploadedAt: "2025-03-29",
-        url: "https://tiktok.com/abc",
-      },
-    ];
-
-    setVideos(mock);
+    setLoading(true);
+    crawlMutation.mutate({ keyword: query });
   };
+
+  // const handleSearch = () => {
+  //   if (!query.trim()) return;
+
+  //   const mock = [
+  //     {
+  //       id: "abc123",
+  //       title: "🔥 터질 영상 테스트",
+  //       thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail",
+  //       views: 3200000,
+  //       platform: "youtube",
+  //       uploadedAt: "2025-03-30",
+  //       url: "https://youtube.com/watch?v=abc123",
+  //     },
+  //     {
+  //       id: "xyz456",
+  //       title: "🚀 초급등 영상",
+  //       thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail+2",
+  //       views: 5100000,
+  //       platform: "tiktok",
+  //       uploadedAt: "2025-03-29",
+  //       url: "https://tiktok.com/abc",
+  //     },
+  //   ];
+
+  //   setVideos(mock);
+  // };
 
   return (
     <div className="p-4 space-y-6">

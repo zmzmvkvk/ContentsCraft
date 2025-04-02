@@ -3,6 +3,7 @@ const puppeteer = require("puppeteer");
 module.exports = async function crawlYouTube(keyword) {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
+  console.log(`🔍 YouTube에서 키워드 "${keyword}" 검색 중...`);
 
   const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(
     keyword
