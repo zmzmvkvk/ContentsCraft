@@ -17,7 +17,7 @@ module.exports = async function crawlDouyin(channelName) {
     // ✅ 기본 콘텐츠 로딩 기다리기 (필터 없이)
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    const videos = await page.evaluate((channelName) => {
+    const videos = await page.evaluate(() => {
       const videoCards = Array.from(
         document.querySelectorAll(
           "#waterFallScrollContainer .search-result-card"

@@ -5,14 +5,19 @@ const crawlAllPlatforms = require("../services/crawler");
 router.post("/", async (req, res) => {
   const { query } = req.body;
 
-  if (!query) return res.status(400).json({ error: "Query is required" });
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+
+  const onLog = (msg) => {
+    res.write(`LOG:${msg}\n`);
+  };
 
   try {
-    const videos = await crawlAllPlatforms(query);
-    res.json(videos);
+    const videos = await crawlAllPlatforms(query, { onLog });
+    res.write(`RESULT:${JSON.stringify(videos)}\n`);
   } catch (error) {
-    console.error("❌ 서버 오류:", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.write(`LOG:❌ 서버 오류: ${error.message}\n`);
+  } finally {
+    res.end();
   }
 });
 

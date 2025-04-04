@@ -1,13 +1,13 @@
-// src/components/VideoCard.jsx
 import { useCrawlStore } from "../stores/useCrawlStore";
 import youtubeIcon from "../assets/youtube.png";
 import tiktokIcon from "../assets/tiktok.jpg";
 import douyinIcon from "../assets/douyin.png";
+import { useState } from "react";
 
 export default function VideoCard({ data }) {
   const { liked, toggleLike } = useCrawlStore();
-
   const isLiked = liked.some((v) => v.id === data.id);
+  const [expanded, setExpanded] = useState(false);
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -24,7 +24,6 @@ export default function VideoCard({ data }) {
 
   return (
     <div className="border-2 border-black bg-white rounded-xl overflow-hidden shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#000] transition duration-200 relative">
-      {/* 플랫폼 아이콘 우측 상단 표시 */}
       <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
         <img
           src={getPlatformIcon(data.platform)}
@@ -52,11 +51,8 @@ export default function VideoCard({ data }) {
         <p className="text-xs text-gray-600 mb-2">
           {data.platform !== "douyin"
             ? `${data.views.toLocaleString()} views`
-            : `${
-                data.likes !== undefined ? data.likes.toLocaleString() : "0"
-              } likes`}
-          {" • "}
-          {data.platform}
+            : `${data.likes?.toLocaleString() || "0"} likes`}{" "}
+          • {data.platform}
         </p>
         <a
           href={data.url}
@@ -67,6 +63,16 @@ export default function VideoCard({ data }) {
           영상 보기 →
         </a>
       </div>
+
+      {/* 🧠 GPT 전략 전체 영역 클릭형 */}
+      {data.strategy && (
+        <div
+          className={`cursor-pointer transition-all duration-300 m-3 border border-gray-300 rounded-lg text-sm text-gray-700 whitespace-pre-line bg-gray-50 p-3`}
+        >
+          <strong className="block mb-1">GPT 전략</strong>
+          {data.strategy}
+        </div>
+      )}
     </div>
   );
 }
