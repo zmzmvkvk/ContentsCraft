@@ -4,7 +4,7 @@ import { crawlVideos } from "../api/crawl";
 import { useState } from "react";
 import VideoCard from "../components/VideoCard";
 import Dashboard from "../components/Dashboard";
-import SearchBar from "../components/searchBar";
+import SearchBar from "../components/SearchBar";
 
 export default function Home() {
   const { videos, setVideos, isCrawled } = useCrawlStore();
@@ -25,7 +25,7 @@ export default function Home() {
   const handleSearch = () => {
     if (!query.trim()) return;
     setLoading(true);
-    crawlMutation.mutate(query); // 👈 여기 수정 (객체 아님!)
+    crawlMutation.mutate(query);
   };
 
   return (
@@ -36,20 +36,22 @@ export default function Home() {
         onSearch={handleSearch}
         loading={loading}
       />
+
       {isCrawled && (
         <>
           <div className="flex flex-col-reverse md:flex-row gap-6">
-            <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex-1 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {videos.map((v) => (
-                <VideoCard key={`${v.platform}-${v.id}`} data={v} />
+                <VideoCard key={v.thumbnail} data={v} />
               ))}
             </div>
-            <aside className="md:w-64">
+            <aside className="md:w-64 xl:w-130">
               <Dashboard />
             </aside>
           </div>
         </>
       )}
+
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-white border-opacity-60 mb-4"></div>

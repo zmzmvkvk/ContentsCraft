@@ -5,7 +5,7 @@ import Favorite from "./pages/Favorite";
 
 export default function App() {
   return (
-    <div className="min-h-screen text-gray-800 max-w-6xl mx-auto px-4 py-8 bg-[#f8f5ef]">
+    <div className="min-h-screen text-gray-800 max-w-full mx-auto px-4 py-8 bg-[#f8f5ef]">
       <nav className="p-4 flex gap-4 border-b">
         <NavLink
           to="/"

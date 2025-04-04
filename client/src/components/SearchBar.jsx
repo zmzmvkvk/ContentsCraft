@@ -1,5 +1,10 @@
-// src/components/SearchBar.jsx
 export default function SearchBar({ value, onChange, onSearch, loading }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      onSearch();
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 mb-6">
       <input
@@ -8,6 +13,7 @@ export default function SearchBar({ value, onChange, onSearch, loading }) {
         placeholder="채널명 또는 키워드 입력"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
       />
       <button
         onClick={onSearch}

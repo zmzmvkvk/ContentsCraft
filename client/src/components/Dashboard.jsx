@@ -14,8 +14,8 @@ export default function Dashboard() {
   const mostViewed = [...videos].sort((a, b) => b.views - a.views)[0];
 
   return (
-    <div className="border-2 border-black p-4 rounded-xl bg-[#f3f2ee] shadow-[4px_4px_0px_#000] text-sm space-y-2">
-      <h2 className="font-bold text-lg mb-2">📊 대시보드</h2>
+    <div className="border-2 border-black p-4 rounded-xl bg-[#f3f2ee] shadow-[4px_4px_0px_#000] text-sm xl:text-lg  space-y-2">
+      <h2 className="font-bold text-lg xl:text-2xl mb-2">📊 대시보드</h2>
 
       <p>
         총 수집 영상: <strong>{videos.length}</strong>개
@@ -38,7 +38,7 @@ export default function Dashboard() {
       {mostViewed && (
         <div>
           <p>🔥 가장 높은 조회수 영상:</p>
-          <p className="text-xs italic">
+          <p className="text-xs xl:text-md italic">
             “{mostViewed.title}”<br />({mostViewed.views.toLocaleString()}{" "}
             views)
           </p>
@@ -47,7 +47,7 @@ export default function Dashboard() {
 
       <hr className="my-2 border-black" />
 
-      <p className="text-[11px] text-gray-500">
+      <p className="text-[11px] xl:text-md text-gray-500">
         마지막 수집 시간: {new Date().toLocaleTimeString()}
       </p>
     </div>
