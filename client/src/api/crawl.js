@@ -1,10 +1,7 @@
 // src/api/crawl.js
-import axios from "./axiosInstance";
+import axiosInstance from "./axiosInstance"; // 이걸로 바꿔야 함
 
-export const crawlVideos = async ({ keyword }) => {
-  const res = await axios.post("/crawl", {
-    keyword, // ✅ platform 안 보냄
-  });
-
-  return res.data;
-};
+export async function crawlVideos(query) {
+  const response = await axiosInstance.post("/crawl", { query }); // baseURL + /crawl = /api/crawl
+  return response.data;
+}

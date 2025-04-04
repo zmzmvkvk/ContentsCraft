@@ -1,4 +1,3 @@
-// src/pages/Home.jsx
 import { useCrawlStore } from "../stores/useCrawlStore";
 import { useMutation } from "@tanstack/react-query";
 import { crawlVideos } from "../api/crawl";
@@ -26,35 +25,8 @@ export default function Home() {
   const handleSearch = () => {
     if (!query.trim()) return;
     setLoading(true);
-    crawlMutation.mutate({ keyword: query });
+    crawlMutation.mutate(query); // 👈 여기 수정 (객체 아님!)
   };
-
-  // const handleSearch = () => {
-  //   if (!query.trim()) return;
-
-  //   const mock = [
-  //     {
-  //       id: "abc123",
-  //       title: "🔥 터질 영상 테스트",
-  //       thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail",
-  //       views: 3200000,
-  //       platform: "youtube",
-  //       uploadedAt: "2025-03-30",
-  //       url: "https://youtube.com/watch?v=abc123",
-  //     },
-  //     {
-  //       id: "xyz456",
-  //       title: "🚀 초급등 영상",
-  //       thumbnail: "https://via.placeholder.com/320x180.png?text=Thumbnail+2",
-  //       views: 5100000,
-  //       platform: "tiktok",
-  //       uploadedAt: "2025-03-29",
-  //       url: "https://tiktok.com/abc",
-  //     },
-  //   ];
-
-  //   setVideos(mock);
-  // };
 
   return (
     <div className="p-4 space-y-6">
@@ -69,17 +41,15 @@ export default function Home() {
           <div className="flex flex-col-reverse md:flex-row gap-6">
             <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {videos.map((v) => (
-                <VideoCard key={v.id} data={v} />
+                <VideoCard key={`${v.platform}-${v.id}`} data={v} />
               ))}
             </div>
-
             <aside className="md:w-64">
               <Dashboard />
             </aside>
           </div>
         </>
       )}
-
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-white border-opacity-60 mb-4"></div>
@@ -89,7 +59,7 @@ export default function Home() {
           <div className="w-64 h-2 bg-white bg-opacity-20 mt-4 rounded">
             <div
               className="h-2 bg-green-300 rounded animate-pulse"
-              style={{ width: "40%" }} // 나중에 state로 제어 가능
+              style={{ width: "40%" }}
             ></div>
           </div>
         </div>
