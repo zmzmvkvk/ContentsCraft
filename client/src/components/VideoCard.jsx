@@ -7,7 +7,6 @@ import { useState } from "react";
 export default function VideoCard({ data }) {
   const { liked, toggleLike } = useCrawlStore();
   const isLiked = liked.some((v) => v.id === data.id);
-  const [expanded, setExpanded] = useState(false);
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -40,11 +39,19 @@ export default function VideoCard({ data }) {
         </button>
       </div>
 
-      <img
-        src={data.thumbnail}
-        alt={data.title}
-        className="w-full h-48 object-cover"
-      />
+      {/* ✅ 썸네일 클릭시 이동 + hover 효과 */}
+      <a
+        href={data.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group"
+      >
+        <img
+          src={data.thumbnail}
+          alt={data.title}
+          className="w-full h-48 object-cover group-hover:opacity-80 transition"
+        />
+      </a>
 
       <div className="p-3">
         <h2 className="font-semibold text-base mb-1">{data.title}</h2>
@@ -54,25 +61,15 @@ export default function VideoCard({ data }) {
             : `${data.likes?.toLocaleString() || "0"} likes`}{" "}
           • {data.platform}
         </p>
-        <a
-          href={data.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm underline text-blue-700"
-        >
-          영상 보기 →
-        </a>
       </div>
 
-      {/* 🧠 GPT 전략 전체 영역 클릭형 */}
-      {data.strategy && (
-        <div
-          className={`cursor-pointer transition-all duration-300 m-3 border border-gray-300 rounded-lg text-sm text-gray-700 whitespace-pre-line bg-gray-50 p-3`}
-        >
-          <strong className="block mb-1">GPT 전략</strong>
-          {data.strategy}
-        </div>
-      )}
+      {/* 🧠 GPT 전략 영역 */}
+      <div
+        className={`cursor-pointer transition-all duration-300 m-3 border border-gray-300 rounded-lg text-sm text-gray-700 whitespace-pre-line bg-gray-50 p-3`}
+      >
+        <strong className="block mb-1">GPT 전략</strong>
+        {data.strategy || "GPT 전략이 생성되지 않았습니다."}
+      </div>
     </div>
   );
 }
