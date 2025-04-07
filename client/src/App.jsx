@@ -2,8 +2,16 @@
 import { Routes, Route, NavLink } from "react-router-dom";
 import Home from "./pages/Home";
 import Favorite from "./pages/Favorite";
+import { useEffect } from "react";
+import { useCrawlStore } from "./stores/useCrawlStore";
 
 export default function App() {
+  const syncFavorites = useCrawlStore((state) => state.syncFavorites);
+
+  useEffect(() => {
+    syncFavorites();
+  }, []);
+
   return (
     <div className="min-h-screen text-gray-800 max-w-full mx-auto px-4 py-8 bg-[#f8f5ef]">
       <nav className="p-4 flex gap-4 border-b">
@@ -11,17 +19,17 @@ export default function App() {
           to="/"
           className={({ isActive }) => (isActive ? "font-bold" : "")}
         >
-          메인
+          Main
         </NavLink>
         <NavLink
           to="/favorite"
           className={({ isActive }) => (isActive ? "font-bold" : "")}
         >
-          최애탭
+          Favorites
         </NavLink>
       </nav>
 
-      <main className="p-4">
+      <main className="">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/favorite" element={<Favorite />} />

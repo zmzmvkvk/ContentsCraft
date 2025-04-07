@@ -11,9 +11,6 @@ export default function Dashboard() {
     return acc;
   }, {});
 
-  const totalViews = videos.reduce((sum, v) => sum + (v.views || 0), 0);
-  const avgViews = videos.length ? Math.round(totalViews / videos.length) : 0;
-
   const mostViewed = [...videos].sort((a, b) => b.views - a.views)[0];
 
   const avgByPlatform = {};
@@ -23,29 +20,6 @@ export default function Dashboard() {
       ? Math.round(pv.reduce((sum, v) => sum + (v.views || 0), 0) / pv.length)
       : 0;
   }
-
-  const shortVideos = videos.filter((v) => v.duration && v.duration <= 60);
-  const longVideos = videos.filter((v) => v.duration && v.duration > 60);
-  const avgShort =
-    shortVideos.length > 0
-      ? Math.round(
-          shortVideos.reduce((sum, v) => sum + (v.views || 0), 0) /
-            shortVideos.length
-        )
-      : 0;
-  const avgLong =
-    longVideos.length > 0
-      ? Math.round(
-          longVideos.reduce((sum, v) => sum + (v.views || 0), 0) /
-            longVideos.length
-        )
-      : 0;
-
-  const highViewed = videos.filter((v) => v.views >= 100000).length;
-  const midViewed = videos.filter(
-    (v) => v.views >= 50000 && v.views < 100000
-  ).length;
-  const lowViewed = videos.filter((v) => v.views < 50000).length;
 
   return (
     <div className="border-2 border-black p-4 rounded-xl bg-[#f3f2ee] shadow-[4px_4px_0px_#000] text-sm xl:text-[15px] space-y-2">
@@ -63,14 +37,14 @@ export default function Dashboard() {
       <p>• 플랫폼별 영상 수:</p>
       {Object.entries(countByPlatform).map(([platform, count]) => (
         <p key={platform} className="ml-2">
-          ▸ {platform}: {count}개
+          ▸ {platform}: {count ? count.toLocaleString() : "0"}개
         </p>
       ))}
 
       <p>• 플랫폼별 평균 조회수:</p>
       {Object.entries(avgByPlatform).map(([platform, avg]) => (
         <p key={platform} className="ml-2">
-          ▸ {platform}: {avg.toLocaleString()} views
+          ▸ {platform}: {avg ? avg.toLocaleString() : "0"} views
         </p>
       ))}
 
@@ -80,8 +54,8 @@ export default function Dashboard() {
         <div>
           <p>🔥 가장 높은 조회수 영상:</p>
           <p className="text-xs italic">
-            “{mostViewed.title}”<br />({mostViewed.views.toLocaleString()}{" "}
-            views)
+            “{mostViewed.title}”<br />(
+            {mostViewed.views ? mostViewed.views.toLocaleString() : "0"} views)
           </p>
         </div>
       )}

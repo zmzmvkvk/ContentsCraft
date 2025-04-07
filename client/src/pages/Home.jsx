@@ -1,41 +1,25 @@
+// src/pages/Home.jsx
 import { useCrawlStore } from "../stores/useCrawlStore";
-import { useMutation } from "@tanstack/react-query";
-import { crawlVideos } from "../api/crawl";
+import SearchBar from "../components/SearchBar";
 import VideoCard from "../components/VideoCard";
 import Dashboard from "../components/Dashboard";
-import SearchBar from "../components/SearchBar";
-// 생략: import 구문
 import { useState } from "react";
 
 export default function Home() {
-  const { videos, setVideos, isCrawled } = useCrawlStore();
+  const { videos, setVideos, isCrawled, liked } = useCrawlStore();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [progress, setProgress] = useState(0); // ✅ 진행률 상태 추가
-
   const [minViews, setMinViews] = useState(0);
   const [platformFilter, setPlatformFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  const addLog = (msg) => {
-    setLogs((prev) => {
-      const updated = [...prev, msg];
-      const totalExpectedLogs = 30; // ✅ 예측 로그 수 (채널 1~2개 기준으로 조정 가능)
-      const percentage = Math.min(
-        (updated.length / totalExpectedLogs) * 100,
-        100
-      );
-      setProgress(percentage);
-      return updated;
-    });
-  };
+  const addLog = (msg) => setLogs((prev) => [...prev, msg]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
     setLogs([]);
-    setProgress(0);
 
     const res = await fetch("http://localhost:4000/api/crawl", {
       method: "POST",
@@ -52,14 +36,22 @@ export default function Home() {
 
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split("\n").filter(Boolean);
+
       for (const line of lines) {
         if (line.startsWith("LOG:")) {
           addLog(line.replace("LOG:", "").trim());
         } else if (line.startsWith("RESULT:")) {
           try {
             const result = JSON.parse(line.replace("RESULT:", ""));
-            setVideos(result);
-          } catch (e) {
+            // 🔁 Firebase에 저장된 memo 병합
+            const merged = result.map((v) => {
+              const matched = liked.find(
+                (l) => l.id === v.id && l.platform === v.platform
+              );
+              return matched ? { ...v, memo: matched.memo } : v;
+            });
+            setVideos(merged);
+          } catch {
             addLog("❌ 결과 파싱 실패");
           }
         }
@@ -94,6 +86,7 @@ export default function Home() {
         loading={loading}
       />
 
+      {/* 필터 UI */}
       <div className="flex flex-wrap gap-3 items-center">
         <select
           className="border border-black p-2"
@@ -134,8 +127,8 @@ export default function Home() {
           <p className="text-white text-sm mb-2">🔥 크롤링 중입니다...</p>
           <div className="bg-white bg-opacity-20 w-64 h-2 rounded overflow-hidden mb-4">
             <div
-              className="bg-green-300 h-2 transition-all duration-300"
-              style={{ width: `${progress}%` }}
+              className="bg-green-300 h-2 animate-pulse"
+              style={{ width: "40%" }}
             />
           </div>
           <div className="text-white text-xs max-h-[200px] overflow-y-auto px-4 w-full">
