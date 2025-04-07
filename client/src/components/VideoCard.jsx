@@ -5,6 +5,7 @@ import douyinIcon from "../assets/douyin.png";
 import { useState } from "react";
 
 export default function VideoCard({ data, type }) {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { liked, toggleLike, updateMemo, updateStrategy } = useCrawlStore();
   const isLiked = liked.some((v) => v.id === data.id);
   const [memoText, setMemoText] = useState(data.memo || "");
@@ -29,29 +30,61 @@ export default function VideoCard({ data, type }) {
   };
 
   const handleDetailAnalysis = async () => {
-    const res = await fetch("http://localhost:4000/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: data.title,
-        thumbnail: data.thumbnail,
-        memo: memoText,
-        promptType: selectedPrompt,
-      }),
-    });
+    if (!selectedPrompt || !data?.id) return;
+    setIsAnalyzing(true);
 
-    const result = await res.json();
+    try {
+      const res = await fetch("http://localhost:4000/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: data.title,
+          thumbnail: data.thumbnail,
+          memo: memoText,
+          promptType: selectedPrompt,
+          videoId: data.id,
+        }),
+      });
 
-    if (!result || typeof result !== "object") {
-      alert("❌ GPT 응답이 비정상입니다.");
-      return;
+      const text = await res.text();
+
+      // 비어있거나 HTML 응답이면 JSON 파싱 중단
+      if (!text || text.startsWith("<")) {
+        throw new Error("GPT 응답이 HTML 또는 빈 문자열입니다.");
+      }
+
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (jsonErr) {
+        throw new Error("GPT 응답이 유효한 JSON이 아닙니다.");
+      }
+
+      if (!result || typeof result !== "object") {
+        throw new Error("GPT 응답 비정상");
+      }
+
+      // ✅ Firebase에 저장
+      updateStrategy(data.id, result);
+      alert("🧠 전략 생성 완료!");
+    } catch (err) {
+      console.error("❌ GPT 분석 오류:", err);
+      alert(`❌ GPT 응답 비정상입니다.\n${err.message}`);
+    } finally {
+      setIsAnalyzing(false);
     }
-    await updateStrategy(data.id, result);
-    alert("🧠 전략 생성 완료!");
   };
 
   return (
     <div className="border-2 border-black bg-white rounded-xl overflow-hiddebn shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#000] transition duration-200 relative">
+      {isAnalyzing && (
+        <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="text-white text-sm bg-black px-4 py-2 rounded shadow">
+            🧠 GPT 전략 분석 중...
+          </div>
+        </div>
+      )}
+
       <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
         <img
           src={getPlatformIcon(data.platform)}
@@ -89,7 +122,33 @@ export default function VideoCard({ data, type }) {
       {/* 🧠 GPT 전략 영역 */}
       <div className="cursor-pointer transition-all duration-300 m-3 border border-gray-300 rounded-lg text-sm text-gray-700 whitespace-pre-line bg-gray-50 p-3">
         <strong className="block mb-1">🧠 GPT 전략</strong>
-        {data.strategy || "GPT 전략이 생성되지 않았습니다."}
+        {data.strategy ? (
+          <div>
+            <p>
+              <strong>프롬프트:</strong> {data.strategy["promptType"]}
+            </p>
+            <p>
+              <strong>전략 요약:</strong>{" "}
+              {JSON.stringify(data.strategy["1. 전략 요약"], null, 2)}
+            </p>
+            <p>
+              <strong>기획 전략:</strong>{" "}
+              {JSON.stringify(data.strategy["2. 영상 기획 전략"], null, 2)}
+            </p>
+            <p>
+              <strong>태그:</strong> {data.strategy["3. 태그 추천"]}
+            </p>
+            <p>
+              <strong>썸네일 문구:</strong> {data.strategy["4. 썸네일 문구"]}
+            </p>
+            <p>
+              <strong>멀티유즈 전략:</strong>{" "}
+              {data.strategy["5. 멀티유즈 전략"]}
+            </p>
+          </div>
+        ) : (
+          "GPT 전략이 생성되지 않았습니다."
+        )}
       </div>
 
       {/* 📌 최애탭 확장 영역 */}
