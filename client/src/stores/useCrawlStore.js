@@ -36,7 +36,6 @@ export const useCrawlStore = create(
         set({ liked: updated });
       },
 
-      // ✅ GPT 전략 결과 저장용
       updateStrategy: async (id, strategyObj) => {
         if (!strategyObj || typeof strategyObj !== "object") {
           console.error("❌ 저장할 전략 객체가 유효하지 않음:", strategyObj);
@@ -45,9 +44,10 @@ export const useCrawlStore = create(
 
         const { liked } = get();
         const updated = liked.map((v) =>
-          v.id === id ? { ...v, ...strategyObj } : v
+          v.id === id ? { ...v, detailStrategy: strategyObj } : v
         );
-        await updateFavoriteStrategy(id, strategyObj);
+
+        await updateFavoriteStrategy(id, { detailStrategy: strategyObj }); // 🔥 이 줄!
         set({ liked: updated });
       },
 

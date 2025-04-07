@@ -1,15 +1,27 @@
-import { useCrawlStore } from "../stores/useCrawlStore";
+import { useEffect, useState } from "react";
 import youtubeIcon from "../assets/youtube.png";
 import tiktokIcon from "../assets/tiktok.jpg";
 import douyinIcon from "../assets/douyin.png";
-import { useState } from "react";
+import {
+  updateFavoriteMemo,
+  updateFavoriteStrategy,
+  fetchFavoritesFromDB,
+} from "../api/firebaseService";
+import { useCrawlStore } from "../stores/useCrawlStore";
 
 export default function VideoCard({ data, type }) {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { liked, toggleLike, updateMemo, updateStrategy } = useCrawlStore();
-  const isLiked = liked.some((v) => v.id === data.id);
-  const [memoText, setMemoText] = useState(data.memo || "");
+  const [memo, setMemo] = useState(data.memo || "");
+  const [strategy, setStrategy] = useState(data.strategy || "");
+  const [detailStrategy, setDetailStrategy] = useState(
+    data.detailStrategy || ""
+  );
   const [selectedPrompt, setSelectedPrompt] = useState("Role Play Scenario");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showStrategyModal, setShowStrategyModal] = useState(false);
+  const { liked, toggleLike } = useCrawlStore();
+  const isLiked = liked.some((v) => v.id === data.id);
+  const isFavorite = type === "favorite";
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -24,67 +36,49 @@ export default function VideoCard({ data, type }) {
     }
   };
 
-  const handleSaveMemo = () => {
-    alert("완료!");
-    updateMemo(data.id, memoText);
+  const handleSaveMemo = async () => {
+    setIsSaving(true);
+    await updateFavoriteMemo(data.id, memo);
+    const updated = await fetchFavoritesFromDB();
+    const found = updated.find((v) => v.id === data.id);
+    if (found) setMemo(found.memo || "");
+    setIsSaving(false);
   };
 
   const handleDetailAnalysis = async () => {
-    if (!selectedPrompt || !data?.id) return;
-    setIsAnalyzing(true);
-
     try {
+      setIsAnalyzing(true);
       const res = await fetch("http://localhost:4000/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: data.title,
-          thumbnail: data.thumbnail,
-          memo: memoText,
-          promptType: selectedPrompt,
           videoId: data.id,
+          title: data.title,
+          memo,
+          promptType: selectedPrompt,
         }),
       });
 
-      const text = await res.text();
+      const result = await res.json();
 
-      // 비어있거나 HTML 응답이면 JSON 파싱 중단
-      if (!text || text.startsWith("<")) {
-        throw new Error("GPT 응답이 HTML 또는 빈 문자열입니다.");
+      if (!res.ok || !result) throw new Error("응답 비정상");
+      await updateFavoriteStrategy(data.id, { detailStrategy: result });
+      const updated = await fetchFavoritesFromDB();
+      const found = updated.find((v) => v.id === data.id);
+      if (found) {
+        setStrategy(found.strategy || "");
+        setDetailStrategy(found.detailStrategy || "");
       }
-
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch (jsonErr) {
-        throw new Error("GPT 응답이 유효한 JSON이 아닙니다.");
-      }
-
-      if (!result || typeof result !== "object") {
-        throw new Error("GPT 응답 비정상");
-      }
-
-      // ✅ Firebase에 저장
-      updateStrategy(data.id, result);
-      alert("🧠 전략 생성 완료!");
     } catch (err) {
       console.error("❌ GPT 분석 오류:", err);
-      alert(`❌ GPT 응답 비정상입니다.\n${err.message}`);
+      alert("❌ GPT 응답이 비정상입니다.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   return (
-    <div className="border-2 border-black bg-white rounded-xl overflow-hiddebn shadow-[4px_4px_0px_#000] hover:shadow-[6px_6px_0px_#000] transition duration-200 relative">
-      {isAnalyzing && (
-        <div className="absolute inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="text-white text-sm bg-black px-4 py-2 rounded shadow">
-            🧠 GPT 전략 분석 중...
-          </div>
-        </div>
-      )}
-
+    <div className="border-2 border-black bg-white rounded-xl overflow-hidden shadow-[4px_4px_0px_#000] relative">
       <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
         <img
           src={getPlatformIcon(data.platform)}
@@ -113,79 +107,163 @@ export default function VideoCard({ data, type }) {
         <h2 className="font-semibold text-base mb-1">{data.title}</h2>
         <p className="text-xs text-gray-600 mb-2">
           {data.platform !== "douyin"
-            ? `${data.views.toLocaleString()} views`
+            ? `${data.views?.toLocaleString() || "0"} views`
             : `${data.likes?.toLocaleString() || "0"} likes`}{" "}
           • {data.platform}
         </p>
       </div>
 
-      {/* 🧠 GPT 전략 영역 */}
-      <div className="cursor-pointer transition-all duration-300 m-3 border border-gray-300 rounded-lg text-sm text-gray-700 whitespace-pre-line bg-gray-50 p-3">
-        <strong className="block mb-1">🧠 GPT 전략</strong>
-        {data.strategy ? (
-          <div>
-            <p>
-              <strong>프롬프트:</strong> {data.strategy["promptType"]}
-            </p>
-            <p>
-              <strong>전략 요약:</strong>{" "}
-              {JSON.stringify(data.strategy["1. 전략 요약"], null, 2)}
-            </p>
-            <p>
-              <strong>기획 전략:</strong>{" "}
-              {JSON.stringify(data.strategy["2. 영상 기획 전략"], null, 2)}
-            </p>
-            <p>
-              <strong>태그:</strong> {data.strategy["3. 태그 추천"]}
-            </p>
-            <p>
-              <strong>썸네일 문구:</strong> {data.strategy["4. 썸네일 문구"]}
-            </p>
-            <p>
-              <strong>멀티유즈 전략:</strong>{" "}
-              {data.strategy["5. 멀티유즈 전략"]}
-            </p>
-          </div>
-        ) : (
-          "GPT 전략이 생성되지 않았습니다."
-        )}
-      </div>
-
-      {/* 📌 최애탭 확장 영역 */}
-      {isLiked && type === "favorite" && (
-        <div className="px-4 pb-4 flex flex-col gap-2">
-          <select
-            className="w-full border border-gray-300 rounded-md p-2 text-sm"
-            value={selectedPrompt}
-            onChange={(e) => setSelectedPrompt(e.target.value)}
-          >
-            <option>Role Play Scenario</option>
-            <option>Serendipity Blend</option>
-            <option>Emotive Narrative</option>
-          </select>
-
-          <div className="flex gap-2">
-            <textarea
-              className="flex-1 border border-gray-300 rounded-md p-2 text-sm"
-              rows={3}
-              value={memoText}
-              onChange={(e) => setMemoText(e.target.value)}
-              placeholder="내 전략 메모 작성..."
-            />
+      {isFavorite ? (
+        <>
+          <div className="m-3">
+            <strong className="block mb-1">🧠 GPT 전략</strong>
             <button
-              className="bg-orange-600 text-white px-3 text-sm font-semibold rounded"
-              onClick={handleSaveMemo}
+              className="text-blue-600 underline text-sm"
+              onClick={() => setShowStrategyModal(true)}
             >
-              저장
+              전략 자세히 보기
             </button>
           </div>
 
-          <button
-            className="mt-1 w-full bg-black text-white py-2 rounded hover:bg-amber-600"
-            onClick={handleDetailAnalysis}
-          >
-            🧠 상세 분석
-          </button>
+          <div className="px-4 pb-2">
+            <select
+              className="w-full border border-gray-300 rounded-md p-2 text-sm mb-2"
+              value={selectedPrompt}
+              onChange={(e) => setSelectedPrompt(e.target.value)}
+            >
+              <option value="Role Play Scenario">
+                역할극(Role Play) 시나리오
+              </option>
+              <option value="Serendipity Blend">
+                무작위 키워드 결합(Serendipity Blend)
+              </option>
+              <option value="Emotive Narrative">
+                감정·스토리 몰입(Emotive Narrative)
+              </option>
+            </select>
+
+            <textarea
+              className="w-full border border-gray-300 rounded-md p-2 text-sm mb-2"
+              rows={3}
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="내 전략 메모 작성..."
+              disabled={isSaving || isAnalyzing}
+            />
+          </div>
+
+          <div className="px-4 pb-4 flex justify-between">
+            <button
+              className={`px-4 py-1 rounded text-white text-sm ${
+                isSaving ? "bg-gray-400" : "bg-orange-500 hover:bg-orange-600"
+              }`}
+              onClick={handleSaveMemo}
+              disabled={isSaving}
+            >
+              {isSaving ? "저장 중..." : "저장"}
+            </button>
+
+            <button
+              className={`w-4/5 py-2 rounded text-white text-sm font-bold ${
+                isAnalyzing ? "bg-gray-600" : "bg-black hover:bg-neutral-800"
+              }`}
+              onClick={handleDetailAnalysis}
+              disabled={isAnalyzing}
+            >
+              {isAnalyzing ? "🧠 GPT 전략 분석 중..." : "🧠 상세 분석"}
+            </button>
+          </div>
+
+          {showStrategyModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-auto shadow-lg">
+                <h2 className="text-3xl font-bold mb-4">
+                  🧠 GPT 전략 상세 보기
+                </h2>
+                {detailStrategy ? (
+                  selectedPrompt === "Serendipity Blend" ? (
+                    <div className="space-y-6 text-[15px] text-gray-800 leading-relaxed">
+                      <h3 className="text-lg font-bold">
+                        🔀 무작위 결합 아이디어
+                      </h3>
+                      {Array.isArray(detailStrategy["무작위 결합 아이디어"]) ? (
+                        detailStrategy["무작위 결합 아이디어"].map(
+                          (idea, index) => (
+                            <div key={index} className="space-y-2">
+                              <p className="font-semibold">
+                                {index + 1}. {idea.조합명}
+                              </p>
+                              <p>👉 {idea.설명}</p>
+                              <ul className="list-disc list-inside text-sm ml-2 text-gray-700">
+                                <li>📌 예시: {idea.예시}</li>
+                                <li>✨ 효과: {idea.효과}</li>
+                              </ul>
+                            </div>
+                          )
+                        )
+                      ) : (
+                        <p>아이디어 없음</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4 text-lg text-gray-800">
+                      <div>
+                        <p className="font-semibold text-base">1. 전략 요약</p>
+                        {Object.entries(
+                          detailStrategy["1. 전략 요약"] || {}
+                        ).map(([key, value]) => (
+                          <p key={key}>
+                            <strong>{key}:</strong> {value}
+                          </p>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-base">
+                          2. 영상 기획 전략
+                        </p>
+                        {Object.entries(
+                          detailStrategy["2. 영상 기획 전략"] || {}
+                        ).map(([key, value]) => (
+                          <p key={key}>
+                            <strong>{key}:</strong> {value}
+                          </p>
+                        ))}
+                      </div>
+                      <p>
+                        <strong>3. 태그 추천:</strong>{" "}
+                        {detailStrategy["3. 태그 추천"]?.join(", ") || "없음"}
+                      </p>
+                      <p>
+                        <strong>4. 썸네일 문구:</strong>{" "}
+                        {detailStrategy["4. 썸네일 문구"] || "없음"}
+                      </p>
+                      <p>
+                        <strong>5. 멀티유즈 전략:</strong>{" "}
+                        {detailStrategy["5. 멀티유즈 전략"] || "없음"}
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <p className="text-gray-500">
+                    🧠 아직 생성된 전략이 없습니다.
+                  </p>
+                )}
+                <div className="mt-4 text-right">
+                  <button
+                    className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                    onClick={() => setShowStrategyModal(false)}
+                  >
+                    닫기
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="m-3">
+          <strong className="block mb-1">🧠 GPT 전략</strong>
+          {data.strategy}
         </div>
       )}
     </div>

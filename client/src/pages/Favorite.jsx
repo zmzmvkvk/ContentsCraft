@@ -1,13 +1,12 @@
 import { useCrawlStore } from "../stores/useCrawlStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import VideoCard from "../components/VideoCard";
 
 export default function Favorite() {
-  const { liked } = useCrawlStore();
-
   const [minViews, setMinViews] = useState(0);
   const [platformFilter, setPlatformFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("desc");
+  const { liked, syncFavorites } = useCrawlStore();
 
   const filterAndSortVideos = () => {
     const filtered = liked.filter((v) => {
@@ -24,6 +23,10 @@ export default function Favorite() {
     const douyinVideos = liked.filter((v) => v.platform === "douyin");
     return [...sorted, ...douyinVideos];
   };
+
+  useEffect(() => {
+    syncFavorites();
+  }, []);
 
   return (
     <div className="p-4 space-y-6">

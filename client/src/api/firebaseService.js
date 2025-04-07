@@ -32,6 +32,7 @@ export async function updateFavoriteMemo(videoId, memo) {
 }
 
 export async function updateFavoriteStrategy(videoId, strategyObj) {
+  // console.log("✅ updateStrategy 대상:", videoId, strategyObj);
   const ref = doc(db, FAVORITE_PATH, videoId);
   await setDoc(ref, strategyObj, { merge: true });
 }
