@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import youtubeIcon from "../assets/youtube.png";
 import tiktokIcon from "../assets/tiktok.jpg";
 import douyinIcon from "../assets/douyin.png";
@@ -11,7 +11,7 @@ import { useCrawlStore } from "../stores/useCrawlStore";
 
 export default function VideoCard({ data, type }) {
   const [memo, setMemo] = useState(data.memo || "");
-  const [strategy, setStrategy] = useState(data.strategy || "");
+  // const [strategy, setStrategy] = useState(data.strategy || "");
   const [detailStrategy, setDetailStrategy] = useState(
     data.detailStrategy || ""
   );
@@ -88,7 +88,7 @@ export default function VideoCard({ data, type }) {
 
       const found = updated.find((v) => v.id === data.id);
       if (found) {
-        setStrategy(found.strategy || "");
+        // setStrategy(found.strategy || "");
         const ds = found.detailStrategy;
         const parsed = typeof ds === "string" ? JSON.parse(ds) : ds || {}; // 🔥 핵심!
         setDetailStrategy(parsed);
@@ -137,7 +137,7 @@ export default function VideoCard({ data, type }) {
         </p>
       </div>
 
-      {isFavorite ? (
+      {isFavorite && (
         <>
           <div className="m-3">
             <strong className="block mb-1">🧠 GPT 전략</strong>
@@ -311,11 +311,6 @@ export default function VideoCard({ data, type }) {
             영상 다운로드
           </button>
         </>
-      ) : (
-        <div className="m-3">
-          <strong className="block mb-1">🧠 GPT 전략</strong>
-          {data.strategy}
-        </div>
       )}
     </div>
   );

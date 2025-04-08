@@ -38,21 +38,5 @@ module.exports = async function crawlAllPlatforms(input, options = {}) {
   const validResults = results.flat();
 
   onLog(`✅ 크롤링 완료: ${validResults.length}개 영상`);
-
-  // 🧠 전략 생성도 limit 내에서 병렬 처리
-  const strategyTasks = validResults.map((video, i) =>
-    limit(async () => {
-      if (video.title) {
-        onLog(`🤖 GPT 전략 생성 중 (${i + 1}/${validResults.length})`);
-        const strategy = await generateStrategy(video.title, video.thumbnail);
-        return { ...video, strategy };
-      }
-      return video;
-    })
-  );
-
-  const withStrategy = await Promise.all(strategyTasks);
-
-  onLog(`✅ 모든 전략 생성 완료`);
-  return withStrategy;
+  return validResults;
 };

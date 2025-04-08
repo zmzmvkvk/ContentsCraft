@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 
 module.exports = async function crawlDouyin(channelName) {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: ["--lang=zh-CN,zh"],
     defaultViewport: null,
   });
@@ -17,7 +17,7 @@ module.exports = async function crawlDouyin(channelName) {
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/89 Safari/537.36"
     );
 
-    // ✅ 기본 콘텐츠 로딩 기다리기 (필터 없이)
+    // ✅ 콘텐츠 로딩 대기
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const videos = await page.evaluate(() => {
@@ -36,15 +36,22 @@ module.exports = async function crawlDouyin(channelName) {
           el.querySelector(
             ".videoImage > div > div + div > div:nth-child(3) svg + span font font"
           ) || null;
-        const videoLink = el.querySelector("a")?.href || window.location.href;
+
+        // 🎯 썸네일에서 video ID 추출
+        const videoLink = (() => {
+          const thumbUrl = imgEl?.src || "";
+          const match = thumbUrl.match(/\/tos-[^/]+\/([a-f0-9]{32})~/);
+          const videoId = match ? match[1] : `fallback-${idx}`;
+          return `https://www.douyin.com/video/${videoId}`;
+        })();
 
         return {
-          id: `douyin-${videoLink.split("/").pop() || idx}-${idx}`, // 중복 방지 확실한 ID
+          id: `douyin-${videoLink.split("/").pop() || idx}-${idx}`,
           title: titleEl ? titleEl.innerText.trim() : `douyin-${idx + 1}`,
           thumbnail: imgEl ? imgEl.src : "",
           url: videoLink,
           likes: likesEl
-            ? parseInt(likesEl.innerText.trim().replace(/[,\.]/g, ""), 10)
+            ? parseInt(likesEl.innerText.trim().replace(/[,\\.]/g, ""), 10)
             : 0,
           uploadedAt: "",
           platform: "douyin",
