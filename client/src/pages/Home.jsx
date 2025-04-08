@@ -1,9 +1,9 @@
 // src/pages/Home.jsx
 import { useCrawlStore } from "../stores/useCrawlStore";
-import SearchBar from "../components/SearchBar";
 import VideoCard from "../components/VideoCard";
 import Dashboard from "../components/Dashboard";
 import { useState } from "react";
+import SearchBar from "../components/searchBar";
 
 export default function Home() {
   const { videos, setVideos, isCrawled, liked } = useCrawlStore();

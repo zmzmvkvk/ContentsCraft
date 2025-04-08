@@ -3,7 +3,7 @@ const puppeteer = require("puppeteer");
 
 module.exports = async function crawlTikTok(channelName) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--lang=en-US,en"],
     defaultViewport: null,
   });

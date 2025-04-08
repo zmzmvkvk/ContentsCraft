@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 
 module.exports = async function crawlDouyin(channelName) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["--lang=zh-CN,zh"],
     defaultViewport: null,
   });

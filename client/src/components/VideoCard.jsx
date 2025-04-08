@@ -64,10 +64,13 @@ export default function VideoCard({ data, type }) {
       if (!res.ok || !result) throw new Error("응답 비정상");
       await updateFavoriteStrategy(data.id, { detailStrategy: result });
       const updated = await fetchFavoritesFromDB();
+
       const found = updated.find((v) => v.id === data.id);
       if (found) {
         setStrategy(found.strategy || "");
-        setDetailStrategy(found.detailStrategy || "");
+        const ds = found.detailStrategy;
+        const parsed = typeof ds === "string" ? JSON.parse(ds) : ds || {}; // 🔥 핵심!
+        setDetailStrategy(parsed);
       }
     } catch (err) {
       console.error("❌ GPT 분석 오류:", err);
@@ -141,7 +144,6 @@ export default function VideoCard({ data, type }) {
                 감정·스토리 몰입(Emotive Narrative)
               </option>
             </select>
-
             <textarea
               className="w-full border border-gray-300 rounded-md p-2 text-sm mb-2"
               rows={3}
@@ -162,7 +164,6 @@ export default function VideoCard({ data, type }) {
             >
               {isSaving ? "저장 중..." : "저장"}
             </button>
-
             <button
               className={`w-4/5 py-2 rounded text-white text-sm font-bold ${
                 isAnalyzing ? "bg-gray-600" : "bg-black hover:bg-neutral-800"
@@ -176,79 +177,102 @@ export default function VideoCard({ data, type }) {
 
           {showStrategyModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-auto shadow-lg">
-                <h2 className="text-3xl font-bold mb-4">
+              <div className="bg-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto shadow-lg">
+                <h2 className="text-3xl font-bold mb-6">
                   🧠 GPT 전략 상세 보기
                 </h2>
+
                 {detailStrategy ? (
-                  selectedPrompt === "Serendipity Blend" ? (
-                    <div className="space-y-6 text-[15px] text-gray-800 leading-relaxed">
-                      <h3 className="text-lg font-bold">
-                        🔀 무작위 결합 아이디어
-                      </h3>
-                      {Array.isArray(detailStrategy["무작위 결합 아이디어"]) ? (
-                        detailStrategy["무작위 결합 아이디어"].map(
-                          (idea, index) => (
-                            <div key={index} className="space-y-2">
-                              <p className="font-semibold">
-                                {index + 1}. {idea.조합명}
-                              </p>
-                              <p>👉 {idea.설명}</p>
-                              <ul className="list-disc list-inside text-sm ml-2 text-gray-700">
-                                <li>📌 예시: {idea.예시}</li>
-                                <li>✨ 효과: {idea.효과}</li>
-                              </ul>
-                            </div>
-                          )
-                        )
-                      ) : (
-                        <p>아이디어 없음</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-4 text-lg text-gray-800">
-                      <div>
-                        <p className="font-semibold text-base">1. 전략 요약</p>
-                        {Object.entries(
-                          detailStrategy["1. 전략 요약"] || {}
-                        ).map(([key, value]) => (
-                          <p key={key}>
-                            <strong>{key}:</strong> {value}
-                          </p>
-                        ))}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-base">
-                          2. 영상 기획 전략
-                        </p>
-                        {Object.entries(
-                          detailStrategy["2. 영상 기획 전략"] || {}
-                        ).map(([key, value]) => (
-                          <p key={key}>
-                            <strong>{key}:</strong> {value}
-                          </p>
-                        ))}
-                      </div>
-                      <p>
-                        <strong>3. 태그 추천:</strong>{" "}
-                        {detailStrategy["3. 태그 추천"]?.join(", ") || "없음"}
+                  <div className="space-y-6 text-[15px] text-gray-800 leading-relaxed">
+                    {/* 전략 타입 */}
+                    {detailStrategy.type && (
+                      <p className="text-xl font-semibold">
+                        {detailStrategy.type}
                       </p>
-                      <p>
-                        <strong>4. 썸네일 문구:</strong>{" "}
-                        {detailStrategy["4. 썸네일 문구"] || "없음"}
-                      </p>
-                      <p>
-                        <strong>5. 멀티유즈 전략:</strong>{" "}
-                        {detailStrategy["5. 멀티유즈 전략"] || "없음"}
-                      </p>
-                    </div>
-                  )
+                    )}
+
+                    {/* 각 전략 섹션 순서대로 */}
+                    {["st1", "st2", "st3", "st4", "st5"].map((sectionKey) => {
+                      const section = detailStrategy[sectionKey];
+                      if (!section || !Array.isArray(section)) return null;
+
+                      return (
+                        <div key={sectionKey}>
+                          {section
+                            .sort((a, b) => a.idx - b.idx)
+                            .map((item, idx) => {
+                              const [labelKey, value] = Object.entries(
+                                item
+                              ).find(([key]) => key !== "idx");
+
+                              // 🎯 제목
+                              if (labelKey === "title") {
+                                return (
+                                  <p
+                                    key={idx}
+                                    className="text-lg font-bold mt-4 mb-2 border-b border-black pb-1"
+                                  >
+                                    {value}
+                                  </p>
+                                );
+                              }
+
+                              // 기승전결 분리
+                              if (
+                                labelKey === "기승전결 스토리" &&
+                                typeof value === "object"
+                              ) {
+                                return (
+                                  <div key={idx} className="ml-2 space-y-1">
+                                    {["기", "승", "전", "결"].map((part) => (
+                                      <div key={part}>
+                                        <span className="font-bold">
+                                          {part}:
+                                        </span>{" "}
+                                        {value[part] || "-"}
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }
+
+                              // 배열 항목들 (태그, 문구, 전략 등)
+                              if (Array.isArray(value)) {
+                                return (
+                                  <div key={idx} className="ml-2">
+                                    <span className="font-medium text-gray-700">
+                                      {labelKey}:
+                                    </span>
+                                    <ul className="list-disc ml-6 text-gray-800">
+                                      {value.map((v, i) => (
+                                        <li key={i}>{v}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                );
+                              }
+
+                              // 나머지 일반 문자열
+                              return (
+                                <div key={idx} className="ml-2">
+                                  <span className="font-medium text-gray-700">
+                                    {labelKey}:
+                                  </span>{" "}
+                                  {value}
+                                </div>
+                              );
+                            })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <p className="text-gray-500">
                     🧠 아직 생성된 전략이 없습니다.
                   </p>
                 )}
-                <div className="mt-4 text-right">
+
+                <div className="mt-6 text-right">
                   <button
                     className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
                     onClick={() => setShowStrategyModal(false)}
