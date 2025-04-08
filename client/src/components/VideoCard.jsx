@@ -215,79 +215,120 @@ export default function VideoCard({ data, type }) {
                     )}
 
                     {/* 각 전략 섹션 순서대로 */}
-                    {["st1", "st2", "st3", "st4", "st5"].map((sectionKey) => {
-                      const section = detailStrategy[sectionKey];
-                      if (!section || !Array.isArray(section)) return null;
+                    {["st1", "st2", "st3", "st4", "st5", "st6"].map(
+                      (sectionKey) => {
+                        const section = detailStrategy[sectionKey];
+                        if (!section || !Array.isArray(section)) return null;
 
-                      return (
-                        <div key={sectionKey}>
-                          {section
-                            .sort((a, b) => a.idx - b.idx)
-                            .map((item, idx) => {
-                              const [labelKey, value] = Object.entries(
-                                item
-                              ).find(([key]) => key !== "idx");
+                        return (
+                          <div key={sectionKey}>
+                            {section
+                              .sort((a, b) => a.idx - b.idx)
+                              .map((item, idx) => {
+                                const [labelKey, value] = Object.entries(
+                                  item
+                                ).find(([key]) => key !== "idx");
 
-                              // 🎯 제목
-                              if (labelKey === "title") {
-                                return (
-                                  <p
-                                    key={idx}
-                                    className="text-lg font-bold mt-4 mb-2 border-b border-black pb-1"
-                                  >
-                                    {value}
-                                  </p>
-                                );
-                              }
+                                // 🎯 제목
+                                if (labelKey === "title") {
+                                  return (
+                                    <p
+                                      key={idx}
+                                      className="text-lg font-bold mt-4 mb-2 border-b border-black pb-1"
+                                    >
+                                      {value}
+                                    </p>
+                                  );
+                                }
 
-                              // 기승전결 분리
-                              if (
-                                labelKey === "기승전결 스토리" &&
-                                typeof value === "object"
-                              ) {
-                                return (
-                                  <div key={idx} className="ml-2 space-y-1">
-                                    {["기", "승", "전", "결"].map((part) => (
-                                      <div key={part}>
-                                        <span className="font-bold">
-                                          {part}:
-                                        </span>{" "}
-                                        {value[part] || "-"}
-                                      </div>
-                                    ))}
-                                  </div>
-                                );
-                              }
+                                // st6: 대본 초안
+                                if (
+                                  [
+                                    "도입",
+                                    "갈등",
+                                    "전개",
+                                    "전환",
+                                    "해결",
+                                  ].includes(item?.seq || "")
+                                ) {
+                                  return (
+                                    <div
+                                      key={idx}
+                                      className="ml-4 mb-4 p-3 rounded bg-gray-100"
+                                    >
+                                      <p className="text-sm font-semibold mb-1">
+                                        🎬{" "}
+                                        <span className="text-blue-700">
+                                          {item.seq}
+                                        </span>
+                                      </p>
+                                      <p className="mb-1">
+                                        📝 <strong>스크립트:</strong>{" "}
+                                        {item.script}
+                                      </p>
+                                      <p className="mb-1">
+                                        🎯 <strong>공략 요소:</strong>{" "}
+                                        {Array.isArray(item.factor)
+                                          ? item.factor.join(", ")
+                                          : "-"}
+                                      </p>
+                                      <p className="mb-1">
+                                        👀 <strong>타깃:</strong>{" "}
+                                        {item.target || "-"}
+                                      </p>
+                                    </div>
+                                  );
+                                }
 
-                              // 배열 항목들 (태그, 문구, 전략 등)
-                              if (Array.isArray(value)) {
+                                // 기승전결 스토리
+                                if (
+                                  labelKey === "기승전결 스토리" &&
+                                  typeof value === "object"
+                                ) {
+                                  return (
+                                    <div key={idx} className="ml-2 space-y-1">
+                                      {["기", "승", "전", "결"].map((part) => (
+                                        <div key={part}>
+                                          <span className="font-bold">
+                                            {part}:
+                                          </span>{" "}
+                                          {value[part] || "-"}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+
+                                // 배열 항목들 (태그, 문구, 전략 등)
+                                if (Array.isArray(value)) {
+                                  return (
+                                    <div key={idx} className="ml-2">
+                                      <span className="font-medium text-gray-700">
+                                        {labelKey}:
+                                      </span>
+                                      <ul className="list-disc ml-6 text-gray-800">
+                                        {value.map((v, i) => (
+                                          <li key={i}>{v}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  );
+                                }
+
+                                // 나머지 일반 문자열
                                 return (
                                   <div key={idx} className="ml-2">
                                     <span className="font-medium text-gray-700">
                                       {labelKey}:
-                                    </span>
-                                    <ul className="list-disc ml-6 text-gray-800">
-                                      {value.map((v, i) => (
-                                        <li key={i}>{v}</li>
-                                      ))}
-                                    </ul>
+                                    </span>{" "}
+                                    {value}
                                   </div>
                                 );
-                              }
-
-                              // 나머지 일반 문자열
-                              return (
-                                <div key={idx} className="ml-2">
-                                  <span className="font-medium text-gray-700">
-                                    {labelKey}:
-                                  </span>{" "}
-                                  {value}
-                                </div>
-                              );
-                            })}
-                        </div>
-                      );
-                    })}
+                              })}
+                          </div>
+                        );
+                      }
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-500">아직 생성된 전략이 없습니다.</p>
