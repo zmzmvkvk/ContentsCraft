@@ -45,6 +45,27 @@ export default function VideoCard({ data, type }) {
     setIsSaving(false);
   };
 
+  const handleDownload = async (platform, videoUrl) => {
+    try {
+      const response = await fetch("http://localhost:4000/api/download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ platform, videoUrl }),
+      });
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${platform}_video.mp4`;
+      a.click();
+    } catch (err) {
+      console.error("다운로드 실패:", err);
+    }
+  };
+
   const handleDetailAnalysis = async () => {
     try {
       setIsAnalyzing(true);
@@ -283,6 +304,12 @@ export default function VideoCard({ data, type }) {
               </div>
             </div>
           )}
+          <button
+            onClick={() => handleDownload(data.platform, data.url)}
+            className="bg-blue-500 text-white px-3 py-1 rounded mt-2"
+          >
+            영상 다운로드
+          </button>
         </>
       ) : (
         <div className="m-3">

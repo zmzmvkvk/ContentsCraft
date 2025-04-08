@@ -13,6 +13,9 @@ module.exports = async function crawlDouyin(channelName) {
 
   try {
     await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/89 Safari/537.36"
+    );
 
     // ✅ 기본 콘텐츠 로딩 기다리기 (필터 없이)
     await new Promise((resolve) => setTimeout(resolve, 5000));

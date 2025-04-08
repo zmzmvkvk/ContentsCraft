@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const crawlRouter = require("./routes/crawl");
 const analyzeRouter = require("./routes/analyze");
 const topChannels = require("./routes/topChannels");
+const downloadRouter = require("./routes/download");
 const app = express();
 const PORT = 4000;
 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 app.use("/api/crawl", crawlRouter);
 app.use("/api/analyze", analyzeRouter);
 app.use("/api/top-channels", topChannels);
+app.use("/api/download", downloadRouter);
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);

@@ -10,6 +10,7 @@ module.exports = async function crawlTikTok(channelName) {
 
   const page = await browser.newPage();
   const url = `https://www.tiktok.com/search?q=${channelName}`;
+
   console.log(`🔍 TikTok 크롤링 시작: ${url}`);
 
   try {
@@ -35,7 +36,7 @@ module.exports = async function crawlTikTok(channelName) {
       return Array.from(cards)
         .slice(0, 10) // 상위 10개 영상만
         .map((card, i) => {
-          const linkTag = card.querySelector("a[href^='/video/']");
+          const linkTag = card.querySelector("a[href*='/video/']");
           const imgTag = card.querySelector("img");
           const viewsTag = card.querySelector("[data-e2e='video-views']");
           const titleTag = card.querySelector('span[data-e2e="new-desc-span"]');
@@ -44,9 +45,9 @@ module.exports = async function crawlTikTok(channelName) {
           const id = href?.includes("/video/")
             ? href.split("/video/")[1]
             : `tt${i}`;
-          const url = href
-            ? `https://www.tiktok.com${href}`
-            : "https://www.tiktok.com";
+          const url = href?.startsWith("http")
+            ? href
+            : `https://www.tiktok.com${href}`;
           const thumbnail = imgTag?.src || "";
           const viewsText = viewsTag?.textContent || "";
           const title = titleTag?.textContent?.trim() || "제목 없음";
