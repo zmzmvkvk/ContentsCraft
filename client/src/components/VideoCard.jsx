@@ -139,15 +139,7 @@ export default function VideoCard({ data, type }) {
 
       {isFavorite && (
         <>
-          <div className="m-3">
-            <strong className="block mb-1">🧠 GPT 전략</strong>
-            <button
-              className="text-blue-600 underline text-sm"
-              onClick={() => setShowStrategyModal(true)}
-            >
-              전략 자세히 보기
-            </button>
-          </div>
+          <div className="m-3"></div>
 
           <div className="px-4 pb-2">
             <select
@@ -175,33 +167,43 @@ export default function VideoCard({ data, type }) {
             />
           </div>
 
-          <div className="px-4 pb-4 flex justify-between">
+          <div className="px-4 pb-4 flex gap-x-2 justify-between">
             <button
-              className={`px-4 py-1 rounded text-white text-sm ${
-                isSaving ? "bg-gray-400" : "bg-orange-500 hover:bg-orange-600"
+              className={`cursor-pointer rounded text-md py-1 px-2 text-white ${
+                isSaving ? "bg-neutral-600" : "bg-gray-700 hover:bg-teal-600"
               }`}
               onClick={handleSaveMemo}
               disabled={isSaving}
             >
-              {isSaving ? "저장 중..." : "저장"}
+              {isSaving ? "Saving..." : "Save"}
             </button>
             <button
-              className={`w-4/5 py-2 rounded text-white text-sm font-bold ${
-                isAnalyzing ? "bg-gray-600" : "bg-black hover:bg-neutral-800"
+              className={`cursor-pointer rounded flex-auto text-md py-1 px-2 text-white ${
+                isAnalyzing ? "bg-neutral-600" : "bg-gray-700 hover:bg-teal-600"
               }`}
               onClick={handleDetailAnalysis}
               disabled={isAnalyzing}
             >
-              {isAnalyzing ? "🧠 GPT 전략 분석 중..." : "🧠 상세 분석"}
+              {isAnalyzing ? "Analyzing..." : " Analyze"}
+            </button>
+            <button
+              className="rounded cursor-pointer text-md flex-auto py-1 px-2 text-white bg-gray-700 hover:bg-teal-600"
+              onClick={() => setShowStrategyModal(true)}
+            >
+              Detail
+            </button>
+            <button
+              onClick={() => handleDownload(data.platform, data.url)}
+              className="cursor-pointer rounded text-md py-1 px-2 bg-gray-700 text-white hover:bg-teal-600"
+            >
+              Download
             </button>
           </div>
 
           {showStrategyModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto shadow-lg">
-                <h2 className="text-3xl font-bold mb-6">
-                  🧠 GPT 전략 상세 보기
-                </h2>
+                <h2 className="text-3xl font-bold mb-6">GPT 전략 상세 보기</h2>
 
                 {detailStrategy ? (
                   <div className="space-y-6 text-[15px] text-gray-800 leading-relaxed">
@@ -288,9 +290,7 @@ export default function VideoCard({ data, type }) {
                     })}
                   </div>
                 ) : (
-                  <p className="text-gray-500">
-                    🧠 아직 생성된 전략이 없습니다.
-                  </p>
+                  <p className="text-gray-500">아직 생성된 전략이 없습니다.</p>
                 )}
 
                 <div className="mt-6 text-right">
@@ -304,12 +304,6 @@ export default function VideoCard({ data, type }) {
               </div>
             </div>
           )}
-          <button
-            onClick={() => handleDownload(data.platform, data.url)}
-            className="bg-blue-500 text-white px-3 py-1 rounded mt-2"
-          >
-            영상 다운로드
-          </button>
         </>
       )}
     </div>
