@@ -104,7 +104,7 @@ export default function VideoCard({ data, type }) {
   };
 
   return (
-    <div className="border border-gray-700 bg-[#1e1e1e] text-white rounded-xl overflow-hidden shadow-md relative">
+    <div className="border border-gray-700 bg-[#2a2a2a] text-white rounded-xl overflow-hidden shadow-md relative">
       <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
         <img
           src={getPlatformIcon(data.platform)}
@@ -131,10 +131,10 @@ export default function VideoCard({ data, type }) {
 
       <div className="p-3">
         <h2 className="font-semibold text-base mb-1">{data.title}</h2>
-        <p className="text-xs text-gray-400 mb-1">
+        <p className="text-xs text-white mb-1">
           수집일: {formatDate(data.collectedAt)}
         </p>
-        <p className="text-xs text-neutral-400 mb-2">
+        <p className="text-xs text-white mb-2">
           {data.platform !== "douyin"
             ? `${data.views?.toLocaleString() || "0"} views`
             : `${data.likes?.toLocaleString() || "0"} likes`}{" "}
@@ -166,7 +166,7 @@ export default function VideoCard({ data, type }) {
 
           <div className="px-4 pb-4 flex flex-wrap gap-2">
             <button
-              className={`rounded px-4 py-1 text-sm font-semibold ${
+              className={`rounded px-4 py-2 text-sm font-semibold ${
                 isSaving ? "bg-gray-600" : "bg-gray-700 hover:bg-blue-500"
               } text-white`}
               onClick={handleSaveMemo}
@@ -175,7 +175,7 @@ export default function VideoCard({ data, type }) {
               {isSaving ? "저장 중..." : "메모 저장"}
             </button>
             <button
-              className={`flex-auto rounded px-4 py-1 text-sm font-semibold ${
+              className={`flex-auto rounded px-4 py-2 text-sm font-semibold ${
                 isAnalyzing ? "bg-gray-600" : "bg-gray-700 hover:bg-blue-500"
               } text-white`}
               onClick={handleDetailAnalysis}
@@ -184,14 +184,14 @@ export default function VideoCard({ data, type }) {
               {isAnalyzing ? "분석 중..." : "GPT 전략 분석"}
             </button>
             <button
-              className="flex-auto rounded px-4 py-1 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
+              className="flex-auto rounded px-4 py-2 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
               onClick={() => setShowStrategyModal(true)}
             >
               전략 보기
             </button>
             <button
               onClick={() => handleDownload(data.platform, data.url)}
-              className="rounded px-4 py-1 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
+              className="rounded px-4 py-2 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
             >
               다운로드
             </button>
@@ -202,7 +202,7 @@ export default function VideoCard({ data, type }) {
               <div className="bg-[#2a2a2a] text-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto shadow-lg">
                 <h2 className="text-3xl font-bold mb-6">GPT 전략 상세 보기</h2>
                 {detailStrategy ? (
-                  <div className="space-y-6 text-[15px] text-neutral-200 leading-relaxed">
+                  <div className="space-y-6 text-[15px] text-white leading-relaxed">
                     {detailStrategy.type && (
                       <p className="text-xl font-semibold">
                         {detailStrategy.type}

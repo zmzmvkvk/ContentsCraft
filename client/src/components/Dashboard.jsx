@@ -22,7 +22,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="border-2 border-black p-4 rounded-xl bg-[#f3f2ee] shadow-[4px_4px_0px_#000] text-sm xl:text-[15px] space-y-2">
+    <div className="border-2 border-black p-4 rounded-xl bg-[#2a2a2a] shadow-[4px_4px_0px_#000] text-sm xl:text-[15px] space-y-2 text-white">
       <h2 className="font-bold text-lg xl:text-xl mb-2">📊 대시보드</h2>
 
       <p>
@@ -63,7 +63,7 @@ export default function Dashboard() {
       <PlatformBarChart />
       <ViewsDonutChart />
       <KeywordFrequencyChart />
-      <p className="text-[11px] xl:text-xs text-gray-500 mt-2">
+      <p className="text-[11px] xl:text-xs text-white mt-2">
         마지막 수집 시간: {new Date().toLocaleTimeString()}
       </p>
     </div>

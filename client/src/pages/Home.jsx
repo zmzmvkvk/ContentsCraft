@@ -87,9 +87,9 @@ export default function Home() {
       />
 
       {/* 필터 UI */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-3 items-center ">
         <select
-          className="border border-black p-2"
+          className="border border-black p-2 bg-[#2a2a2a] text-white"
           value={minViews}
           onChange={(e) => setMinViews(Number(e.target.value))}
         >
@@ -101,7 +101,7 @@ export default function Home() {
         </select>
 
         <select
-          className="border border-black p-2"
+          className="border border-black p-2 bg-[#2a2a2a] text-white"
           value={platformFilter}
           onChange={(e) => setPlatformFilter(e.target.value)}
         >
@@ -112,7 +112,7 @@ export default function Home() {
         </select>
 
         <select
-          className="border border-black p-2"
+          className="border border-black p-2 bg-[#2a2a2a] text-white"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
         >

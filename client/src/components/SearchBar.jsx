@@ -25,7 +25,7 @@ export default function SearchBar({ value, onChange, onSearch, loading }) {
     <div className="flex flex-row items-center gap-2 md:gap-4 mb-6">
       <input
         type="text"
-        className="border-2 border-black p-3 w-3/5 md:w-[400px] bg-white shadow-inner font-mono placeholder-gray-400"
+        className="border-2 border-black p-3 w-3/5 md:w-[400px] bg-[#2a2a2a] shadow-inner font-mono placeholder-white"
         placeholder="채널명 또는 키워드 입력"
         value={value}
         onChange={(e) => onChange(e.target.value)}
