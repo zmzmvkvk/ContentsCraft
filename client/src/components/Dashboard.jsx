@@ -22,7 +22,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="border-2 border-black p-4 rounded-xl bg-[#2a2a2a] shadow-[4px_4px_0px_#000] text-sm xl:text-[15px] space-y-2 text-white">
+    <div className="border-2 border-gray-700 p-4 rounded-xl bg-[#2a2a2a] shadow-[4px_4px_0px_#000] text-sm xl:text-[15px] space-y-2 text-white">
       <h2 className="font-bold text-lg xl:text-xl mb-2">📊 대시보드</h2>
 
       <p>
@@ -32,7 +32,7 @@ export default function Dashboard() {
         👍 좋아요한 영상: <strong>{liked.length}</strong>개
       </p>
 
-      <hr className="my-2 border-black" />
+      <hr className="my-2 border-gray-700" />
 
       <p>• 플랫폼별 영상 수:</p>
       {Object.entries(countByPlatform).map(([platform, count]) => (
@@ -48,7 +48,7 @@ export default function Dashboard() {
         </p>
       ))}
 
-      <hr className="my-2 border-black" />
+      <hr className="my-2 border-gray-700" />
 
       {mostViewed && (
         <div>

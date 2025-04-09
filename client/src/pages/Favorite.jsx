@@ -70,7 +70,7 @@ export default function Favorite() {
 
       <div className="flex flex-wrap gap-3 items-center">
         <select
-          className="border border-black p-2"
+          className="border border-gray-700 p-2 bg-[#2a2a2a]"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value)}
         >
@@ -83,7 +83,7 @@ export default function Favorite() {
 
         {dateFilter === "custom" && (
           <select
-            className="border border-black p-2"
+            className="border border-gray-700 p-2 bg-[#2a2a2a]"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           >
@@ -97,7 +97,7 @@ export default function Favorite() {
         )}
 
         <select
-          className="border border-black p-2"
+          className="border border-gray-700 p-2 bg-[#2a2a2a]"
           value={minViews}
           onChange={(e) => setMinViews(Number(e.target.value))}
         >
@@ -109,7 +109,7 @@ export default function Favorite() {
         </select>
 
         <select
-          className="border border-black p-2"
+          className="border border-gray-700 p-2 bg-[#2a2a2a]"
           value={platformFilter}
           onChange={(e) => setPlatformFilter(e.target.value)}
         >
@@ -120,7 +120,7 @@ export default function Favorite() {
         </select>
 
         <select
-          className="border border-black p-2"
+          className="border border-gray-700 p-2 bg-[#2a2a2a]"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
         >
