@@ -18,7 +18,10 @@ export async function fetchFavoritesFromDB() {
 
 export async function addFavoriteToDB(video) {
   const ref = doc(db, FAVORITE_PATH, video.id);
-  await setDoc(ref, video);
+  await setDoc(ref, {
+    ...video,
+    collectedAt: new Date().toISOString(), // 📌 수집 시각 추가
+  });
 }
 
 export async function removeFavoriteFromDB(videoId) {

@@ -6,14 +6,50 @@ export default function Favorite() {
   const [minViews, setMinViews] = useState(0);
   const [platformFilter, setPlatformFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [selectedDate, setSelectedDate] = useState("");
+
   const { liked, syncFavorites } = useCrawlStore();
+
+  const uniqueDates = [
+    ...new Set(liked.map((item) => item.collectedAt?.slice(0, 10))),
+  ].filter(Boolean);
+
+  const isDateMatch = (video) => {
+    if (!video.collectedAt) return true;
+    const date = new Date(video.collectedAt);
+    const now = new Date();
+
+    if (dateFilter === "today") {
+      return date.toDateString() === now.toDateString();
+    }
+
+    if (dateFilter === "week") {
+      const diff = (now - date) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
+    }
+
+    if (dateFilter === "month") {
+      return (
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear()
+      );
+    }
+
+    if (dateFilter === "custom" && selectedDate) {
+      return video.collectedAt?.startsWith(selectedDate);
+    }
+
+    return true;
+  };
 
   const filterAndSortVideos = () => {
     const filtered = liked.filter((v) => {
       const isOverMinViews = v.platform !== "douyin" && v.views >= minViews;
       const isPlatformMatch =
         platformFilter === "all" || v.platform === platformFilter;
-      return isOverMinViews && isPlatformMatch;
+      const isDateValid = isDateMatch(v);
+      return isOverMinViews && isPlatformMatch && isDateValid;
     });
 
     const sorted = [...filtered].sort((a, b) =>
@@ -32,8 +68,34 @@ export default function Favorite() {
     <div className="p-4 space-y-6">
       <h1 className="text-xl font-bold mb-2">🫶 내가 좋아한 영상들</h1>
 
-      {/* 필터 */}
       <div className="flex flex-wrap gap-3 items-center">
+        <select
+          className="border border-black p-2"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+        >
+          <option value="all">전체 날짜</option>
+          <option value="today">오늘</option>
+          <option value="week">이번 주</option>
+          <option value="month">이번 달</option>
+          <option value="custom">날짜 선택</option>
+        </select>
+
+        {dateFilter === "custom" && (
+          <select
+            className="border border-black p-2"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          >
+            <option value="">날짜 선택</option>
+            {uniqueDates.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        )}
+
         <select
           className="border border-black p-2"
           value={minViews}
@@ -67,7 +129,6 @@ export default function Favorite() {
         </select>
       </div>
 
-      {/* 영상 카드 */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {filterAndSortVideos().map((v, i) => (
           <VideoCard

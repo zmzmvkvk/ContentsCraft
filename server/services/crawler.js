@@ -1,7 +1,6 @@
 const crawlYouTube = require("./youtube");
 const crawlTikTok = require("./tiktok");
 const crawlDouyin = require("./douyin");
-const { generateStrategy } = require("./strategy");
 
 module.exports = async function crawlAllPlatforms(input, options = {}) {
   const { onLog = () => {} } = options;

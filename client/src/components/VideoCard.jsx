@@ -11,7 +11,6 @@ import { useCrawlStore } from "../stores/useCrawlStore";
 
 export default function VideoCard({ data, type }) {
   const [memo, setMemo] = useState(data.memo || "");
-  // const [strategy, setStrategy] = useState(data.strategy || "");
   const [detailStrategy, setDetailStrategy] = useState(
     data.detailStrategy || ""
   );
@@ -22,6 +21,16 @@ export default function VideoCard({ data, type }) {
   const { liked, toggleLike } = useCrawlStore();
   const isLiked = liked.some((v) => v.id === data.id);
   const isFavorite = type === "favorite";
+
+  const formatDate = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   const getPlatformIcon = (platform) => {
     switch (platform) {
@@ -49,12 +58,9 @@ export default function VideoCard({ data, type }) {
     try {
       const response = await fetch("http://localhost:4000/api/download", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ platform, videoUrl }),
       });
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -79,18 +85,14 @@ export default function VideoCard({ data, type }) {
           promptType: selectedPrompt,
         }),
       });
-
       const result = await res.json();
-
       if (!res.ok || !result) throw new Error("응답 비정상");
       await updateFavoriteStrategy(data.id, { detailStrategy: result });
       const updated = await fetchFavoritesFromDB();
-
       const found = updated.find((v) => v.id === data.id);
       if (found) {
-        // setStrategy(found.strategy || "");
         const ds = found.detailStrategy;
-        const parsed = typeof ds === "string" ? JSON.parse(ds) : ds || {}; // 🔥 핵심!
+        const parsed = typeof ds === "string" ? JSON.parse(ds) : ds || {};
         setDetailStrategy(parsed);
       }
     } catch (err) {
@@ -102,16 +104,16 @@ export default function VideoCard({ data, type }) {
   };
 
   return (
-    <div className="border-2 border-black bg-white rounded-xl overflow-hidden shadow-[4px_4px_0px_#000] relative">
+    <div className="border border-gray-700 bg-[#1e1e1e] text-white rounded-xl overflow-hidden shadow-md relative">
       <div className="absolute top-2 right-2 flex items-center gap-2 z-10">
         <img
           src={getPlatformIcon(data.platform)}
           alt={data.platform}
-          className="w-6 h-6 rounded-sm border border-black bg-white"
+          className="w-6 h-6 rounded-sm border border-white bg-white"
         />
         <button
-          className={`px-2 py-1 rounded-full text-sm font-bold border-2 border-black ${
-            isLiked ? "bg-yellow-300 text-black" : "bg-white text-black"
+          className={`px-2 py-1 rounded-full text-sm font-bold border-2 border-white ${
+            isLiked ? "bg-yellow-300 text-black" : "bg-transparent text-white"
           }`}
           onClick={() => toggleLike(data)}
         >
@@ -129,7 +131,10 @@ export default function VideoCard({ data, type }) {
 
       <div className="p-3">
         <h2 className="font-semibold text-base mb-1">{data.title}</h2>
-        <p className="text-xs text-gray-600 mb-2">
+        <p className="text-xs text-gray-400 mb-1">
+          수집일: {formatDate(data.collectedAt)}
+        </p>
+        <p className="text-xs text-neutral-400 mb-2">
           {data.platform !== "douyin"
             ? `${data.views?.toLocaleString() || "0"} views`
             : `${data.likes?.toLocaleString() || "0"} likes`}{" "}
@@ -139,26 +144,18 @@ export default function VideoCard({ data, type }) {
 
       {isFavorite && (
         <>
-          <div className="m-3"></div>
-
           <div className="px-4 pb-2">
             <select
-              className="w-full border border-gray-300 rounded-md p-2 text-sm mb-2"
+              className="w-full border border-gray-600 bg-[#2c2c2c] text-white rounded-md p-2 text-sm mb-2"
               value={selectedPrompt}
               onChange={(e) => setSelectedPrompt(e.target.value)}
             >
-              <option value="Role Play Scenario">
-                역할극(Role Play) 시나리오
-              </option>
-              <option value="Serendipity Blend">
-                무작위 키워드 결합(Serendipity Blend)
-              </option>
-              <option value="Emotive Narrative">
-                감정·스토리 몰입(Emotive Narrative)
-              </option>
+              <option value="Role Play Scenario">역할극 시나리오</option>
+              <option value="Serendipity Blend">무작위 키워드 결합</option>
+              <option value="Emotive Narrative">감정·스토리 몰입</option>
             </select>
             <textarea
-              className="w-full border border-gray-300 rounded-md p-2 text-sm mb-2"
+              className="w-full border border-gray-600 bg-[#2c2c2c] text-white rounded-md p-2 text-sm mb-2"
               rows={3}
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
@@ -167,54 +164,51 @@ export default function VideoCard({ data, type }) {
             />
           </div>
 
-          <div className="px-4 pb-4 flex gap-x-2 justify-between">
+          <div className="px-4 pb-4 flex flex-wrap gap-2">
             <button
-              className={`cursor-pointer rounded text-md py-1 px-2 text-white ${
-                isSaving ? "bg-neutral-600" : "bg-gray-700 hover:bg-teal-600"
-              }`}
+              className={`rounded px-4 py-1 text-sm font-semibold ${
+                isSaving ? "bg-gray-600" : "bg-gray-700 hover:bg-blue-500"
+              } text-white`}
               onClick={handleSaveMemo}
               disabled={isSaving}
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "저장 중..." : "메모 저장"}
             </button>
             <button
-              className={`cursor-pointer rounded flex-auto text-md py-1 px-2 text-white ${
-                isAnalyzing ? "bg-neutral-600" : "bg-gray-700 hover:bg-teal-600"
-              }`}
+              className={`flex-auto rounded px-4 py-1 text-sm font-semibold ${
+                isAnalyzing ? "bg-gray-600" : "bg-gray-700 hover:bg-blue-500"
+              } text-white`}
               onClick={handleDetailAnalysis}
               disabled={isAnalyzing}
             >
-              {isAnalyzing ? "Analyzing..." : " Analyze"}
+              {isAnalyzing ? "분석 중..." : "GPT 전략 분석"}
             </button>
             <button
-              className="rounded cursor-pointer text-md flex-auto py-1 px-2 text-white bg-gray-700 hover:bg-teal-600"
+              className="flex-auto rounded px-4 py-1 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
               onClick={() => setShowStrategyModal(true)}
             >
-              Detail
+              전략 보기
             </button>
             <button
               onClick={() => handleDownload(data.platform, data.url)}
-              className="cursor-pointer rounded text-md py-1 px-2 bg-gray-700 text-white hover:bg-teal-600"
+              className="rounded px-4 py-1 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
             >
-              Download
+              다운로드
             </button>
           </div>
 
           {showStrategyModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto shadow-lg">
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+              <div className="bg-[#2a2a2a] text-white p-6 rounded-xl w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto shadow-lg">
                 <h2 className="text-3xl font-bold mb-6">GPT 전략 상세 보기</h2>
-
                 {detailStrategy ? (
-                  <div className="space-y-6 text-[15px] text-gray-800 leading-relaxed">
-                    {/* 전략 타입 */}
+                  <div className="space-y-6 text-[15px] text-neutral-200 leading-relaxed">
                     {detailStrategy.type && (
                       <p className="text-xl font-semibold">
                         {detailStrategy.type}
                       </p>
                     )}
 
-                    {/* 각 전략 섹션 순서대로 */}
                     {["st1", "st2", "st3", "st4", "st5", "st6"].map(
                       (sectionKey) => {
                         const section = detailStrategy[sectionKey];
@@ -229,19 +223,17 @@ export default function VideoCard({ data, type }) {
                                   item
                                 ).find(([key]) => key !== "idx");
 
-                                // 🎯 제목
                                 if (labelKey === "title") {
                                   return (
                                     <p
                                       key={idx}
-                                      className="text-lg font-bold mt-4 mb-2 border-b border-black pb-1"
+                                      className="text-lg font-bold mt-4 mb-2 border-b border-white pb-1"
                                     >
                                       {value}
                                     </p>
                                   );
                                 }
 
-                                // st6: 대본 초안
                                 if (
                                   [
                                     "도입",
@@ -254,11 +246,11 @@ export default function VideoCard({ data, type }) {
                                   return (
                                     <div
                                       key={idx}
-                                      className="ml-4 mb-4 p-3 rounded bg-gray-100"
+                                      className="ml-4 mb-4 p-3 rounded bg-gray-700"
                                     >
                                       <p className="text-sm font-semibold mb-1">
                                         🎬{" "}
-                                        <span className="text-blue-700">
+                                        <span className="text-blue-300">
                                           {item.seq}
                                         </span>
                                       </p>
@@ -276,11 +268,43 @@ export default function VideoCard({ data, type }) {
                                         👀 <strong>타깃:</strong>{" "}
                                         {item.target || "-"}
                                       </p>
+                                      <p className="text-sm font-semibold mt-2 mb-1">
+                                        ✅ 리소스 추천
+                                      </p>
+                                      {item.clip_recommendation && (
+                                        <div className="mb-1">
+                                          🎬 <strong>영상 리소스:</strong>
+                                          <ul className="list-disc ml-6">
+                                            {item.clip_recommendation.map(
+                                              (v, i) => (
+                                                <li key={i}>{v}</li>
+                                              )
+                                            )}
+                                          </ul>
+                                        </div>
+                                      )}
+                                      {item.bgm_suggestion && (
+                                        <div className="mb-1">
+                                          🗣️ <strong>BGM:</strong>{" "}
+                                          {item.bgm_suggestion}
+                                        </div>
+                                      )}
+                                      {item.image_reference && (
+                                        <div className="mb-1">
+                                          🖼️ <strong>이미지:</strong>
+                                          <ul className="list-disc ml-6">
+                                            {item.image_reference.map(
+                                              (v, i) => (
+                                                <li key={i}>{v}</li>
+                                              )
+                                            )}
+                                          </ul>
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 }
 
-                                // 기승전결 스토리
                                 if (
                                   labelKey === "기승전결 스토리" &&
                                   typeof value === "object"
@@ -299,14 +323,13 @@ export default function VideoCard({ data, type }) {
                                   );
                                 }
 
-                                // 배열 항목들 (태그, 문구, 전략 등)
                                 if (Array.isArray(value)) {
                                   return (
                                     <div key={idx} className="ml-2">
-                                      <span className="font-medium text-gray-700">
+                                      <span className="font-medium text-neutral-300">
                                         {labelKey}:
                                       </span>
-                                      <ul className="list-disc ml-6 text-gray-800">
+                                      <ul className="list-disc ml-6">
                                         {value.map((v, i) => (
                                           <li key={i}>{v}</li>
                                         ))}
@@ -315,23 +338,76 @@ export default function VideoCard({ data, type }) {
                                   );
                                 }
 
-                                // 나머지 일반 문자열
                                 return (
                                   <div key={idx} className="ml-2">
-                                    <span className="font-medium text-gray-700">
+                                    <span className="font-medium text-neutral-300">
                                       {labelKey}:
                                     </span>{" "}
                                     {value}
                                   </div>
                                 );
                               })}
+
+                            {sectionKey === "st6" && (
+                              <div className="text-right mt-4">
+                                <button
+                                  onClick={() => {
+                                    const header = `당신은 유튜브 스토리텔링 전문가입니다.
+                                        아래의 구성을 참고하여, 60초 이내의 완성도 높은 숏폼 대본을 제작해주세요.
+
+                                        목표:
+                                        - 기획 의도와 연출 요소를 고려해 시청자의 이탈을 방지하고,
+                                        - 감정 몰입 요소와 CTA를 포함한 구조적 스토리로 설득력 있게 구성해주세요.\n`;
+                                    const scriptTexts = section
+                                      .filter((item) => item?.script)
+                                      .map((item) => {
+                                        const clip =
+                                          item.clip_recommendation
+                                            ?.map((c) => `- ${c}`)
+                                            .join("\n") || "-";
+                                        const image =
+                                          item.image_reference
+                                            ?.map((c) => `- ${c}`)
+                                            .join("\n") || "-";
+                                        return `🎬 ${item.seq}
+                                        📝 스크립트: ${item.script}
+                                        🎯 공략 요소: ${
+                                          Array.isArray(item.factor)
+                                            ? item.factor.join(", ")
+                                            : "-"
+                                        }
+                                        👀 타깃: ${item.target || "-"}
+                                        ✅ 리소스 추천
+                                        🎬 영상 리소스:
+                                        ${clip}
+                                        🗣️ BGM: ${item.bgm_suggestion || "-"}
+                                        🖼️ 이미지:
+                                        ${image}
+                                        `;
+                                      })
+                                      .join("\n");
+
+                                    const result = `${header}\n${scriptTexts}\n 이 대본을 기준으로 한글로 실제 영상 컷 구성표, 자막 타이밍, TTS 버전을 만들어주세요.`;
+                                    navigator.clipboard.writeText(result);
+                                    alert(
+                                      "📋 프롬프트용 대본이 복사되었습니다!"
+                                    );
+                                  }}
+                                  className="px-4 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                  프롬프트용 대본 복사
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       }
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-500">아직 생성된 전략이 없습니다.</p>
+                  <p className="text-neutral-400">
+                    아직 생성된 전략이 없습니다.
+                  </p>
                 )}
 
                 <div className="mt-6 text-right">
@@ -347,6 +423,12 @@ export default function VideoCard({ data, type }) {
           )}
         </>
       )}
+      {isAnalyzing ||
+        (isSaving && (
+          <div className="absolute inset-0 z-50 bg-black/60 flex items-center justify-center">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+          </div>
+        ))}
     </div>
   );
 }
