@@ -21,6 +21,6 @@
     "googleapis": "^148.0.0",
     "openai": "^4.91.1",
     "p-limit": "^6.2.0",
-    "puppeteer": "^24.5.0"
+    "puppeteer": "^24.6.1"
   }
 }

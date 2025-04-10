@@ -15,10 +15,10 @@ module.exports = async function crawlYouTube(channelName) {
   try {
     await page.goto(channelUrl, {
       waitUntil: "domcontentloaded",
-      timeout: 15000,
+      timeout: 10000,
     });
     await page.waitForSelector("#contents ytd-rich-item-renderer", {
-      timeout: 10000,
+      timeout: 5000,
     });
     console.log("✅ Shorts 렌더링 감지 완료");
 
@@ -65,7 +65,7 @@ module.exports = async function crawlYouTube(channelName) {
     console.warn("⚠️ 채널 실패, 검색 기반으로 fallback");
 
     const searchPage = await browser.newPage();
-    const searchUrl = `https://www.youtube.com/results?search_query=${channelName}&sp=CAMSBAgDEAE%253D`;
+    const searchUrl = `https://www.youtube.com/results?search_query=${channelName}&sp=EgIYAQ%253D%253D`;
     console.log("🔍 유튜브 검색 기반 fallback:", searchUrl);
 
     try {
