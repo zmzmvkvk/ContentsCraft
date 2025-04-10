@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import youtubeIcon from "../assets/youtube.png";
 import tiktokIcon from "../assets/tiktok.jpg";
 import douyinIcon from "../assets/douyin.png";
@@ -8,6 +8,7 @@ import {
   fetchFavoritesFromDB,
 } from "../api/firebaseService";
 import { useCrawlStore } from "../stores/useCrawlStore";
+import { fetchPixabayImages } from "../api/resource";
 
 export default function VideoCard({ data, type }) {
   const [memo, setMemo] = useState(data.memo || "");
@@ -292,13 +293,23 @@ export default function VideoCard({ data, type }) {
                                       {item.image_reference && (
                                         <div className="mb-1">
                                           🖼️ <strong>이미지:</strong>
-                                          <ul className="list-disc ml-6">
+                                          <ul className="list-disc ml-6 mb-2">
                                             {item.image_reference.map(
                                               (v, i) => (
                                                 <li key={i}>{v}</li>
                                               )
                                             )}
                                           </ul>
+                                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                            {item.image_reference.map(
+                                              (query, i) => (
+                                                <ImageFetcher
+                                                  key={i}
+                                                  query={query}
+                                                />
+                                              )
+                                            )}
+                                          </div>
                                         </div>
                                       )}
                                     </div>
@@ -423,12 +434,40 @@ export default function VideoCard({ data, type }) {
           )}
         </>
       )}
-      {isAnalyzing ||
-        (isSaving && (
-          <div className="absolute inset-0 z-50 bg-black/60 flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
-          </div>
-        ))}
+      {(isAnalyzing || isSaving) && (
+        <div className="absolute inset-0 z-50 bg-black/60 flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
+  );
+}
+
+function ImageFetcher({ query }) {
+  const [pixabay, setPixabay] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [pixabayRes] = await Promise.all([fetchPixabayImages(query)]);
+        setPixabay(pixabayRes);
+      } catch (err) {
+        console.error("이미지 로딩 실패:", err.message);
+      }
+    };
+    load();
+  }, [query]);
+
+  return (
+    <>
+      {pixabay.slice(0, 2).map((img) => (
+        <img
+          key={`pixabay-${img.id}`}
+          src={img.url}
+          alt={img.tags}
+          className="rounded shadow w-full object-cover"
+        />
+      ))}
+    </>
   );
 }

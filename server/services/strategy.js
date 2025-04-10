@@ -1,63 +1,59 @@
+// gptStrategyGenerator.js
 require("dotenv").config();
 const OpenAI = require("openai");
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// 상세 전략 생성
+// 공통 감성 프롬프트 예시 (Z세대 쇼츠 톤 설정)
+const toneGuide = `
+너는 Z세대 타깃 쇼츠 콘텐츠 작가야.
+대사는 짧고, 감정적이지만 현실감 있게.
+댓글처럼, 드립도 섞어서, 오글거림 없이 써줘.
+친구한테 말하듯 쓰고, 무조건 한 문장씩 짧게. 공감/반전/뼈 있는 표현 포함.
+예시:
+- "진짜 이게 내 얘기인 줄;;"
+- "갑자기 눈물 나올 뻔"
+- "웃긴데 왜 찡하지..?"
+- "이거 보고 버텼다. 진심으로."
+`;
+
+// 기본 인트로 프롬프트 구성
+function buildIntroPrompt(title, memo) {
+  return `
+  제목: \"${title}\"\n메모: ${memo || "(없음)"}
+
+  당신은 유튜브 알고리즘 전문가입니다.
+  현재 유튜브 숏폼 알고리즘에서 저작권 문제없이 노출될 수 있는 영상의
+  - 이상적인 길이, 전개 구조, CTA 포인트
+  - 시청 지속률을 높이는 기법
+  - 현재 주제에 적용 가능한 알고리즘 친화 전략을 설명하세요.
+
+  당신은 카피라이팅 전문가입니다.
+  이 영상 주제에 대해 시작 3초 이내 후킹 멘트를
+  - 충격 정보형 / 질문 유도형 / 반전 스토리형 / 공감 자극형으로 구분해 주세요.
+
+  당신은 스토리텔링 전문가입니다.
+  이 주제에 대해 도입–갈등–전개–전환–해결 구조로 대본 프레임을 짜고,
+  - 몰입 요소 포함 / 이탈 방지 요소 기획 / CTA는 목적에 따라 구분해 주세요.
+
+  당신은 콘텐츠 마케터입니다.
+  이 스크립트에 어울리는 영상/음악 리소스를 추천하고
+  - 썸네일 문구(8자 내외 5가지)
+  - CTA 문구(5가지)를 목적별로 제시해주세요.
+
+  ${toneGuide}
+  `;
+}
+
+// 상세 전략 생성 함수
 async function generateDetailStrategy({ title, memo, promptType }) {
   if (!title || !promptType) throw new Error("title, promptType는 필수입니다.");
 
-  const intro = `
-  제목: "${title}"\n메모: ${memo || "(없음)"}
-
-  당신은 유튜브 알고리즘 전문가입니다.
-  현재 유튜브 숏폼 알고리즘에서 저작권 관련해서 문제없이 안정적이고 높은 노출을 받을 수 있는 영상의
-  - 이상적인 길이, 전개 구조, CTA 포인트
-  - 시청 지속률을 높이는 기법(카운트다운, 반전 구성, 텍스트 강조 등)
-  - 현재 영상 주제에 적용 가능한 알고리즘 친화 전략
-  을 항상 생각해서 답변을 하시오.
-
-  당신은 콘텐츠 카피라이팅 전문가입니다
-  현재 영상 주제에 대해 유튜브/숏츠 영상 시작 3초 이내에 시청자를 사로잡을 수 있는 후킹 멘트를
-  - 충격 정보형
-  - 질문 유도형
-  - 반전 스토리형
-  - 공감 자극형
-  등 다양한 유형으로 st2에 제안해 주세요.
-
-  당신은 유튜브 스토리텔링 전문가입니다.
-  현재 영상 주제에 대해 st6에 도입–갈등–전개–전환–해결 구조를 따르는 숏츠영상 대본의 프레임을 만들어 주세요.
-  - 각 단계에서 시청자의 이탈을 방지하기 위한 몰입 요소를 포함해 주세요.
-  - CTA는 st2 +@에 구독, 댓글, 클릭 등 목적에 따라 유형을 구분해 주세요.”
-
-  당신은 클릭률 최적화 콘텐츠 마케터입니다.
-  현재 영상 주제에 대해 이 스크립트에 어울리는 영상/음악 리소스를 st6에 추천해주시고
-  - 썸네일용 텍스트 문구 5가지 (8자 내외, 시선 강탈형, 숫자·강조어 포함)
-  - 영상 내 콜투액션 문구 5가지 (구독 유도, 링크 클릭, 댓글 유도 등 목적별로 구분)
-  를 st4에 제안해 주세요. 타깃 시청층의 행동을 유도할 수 있는 강력한 표현을 포함해 주세요.
-
-  너는 숏폼 콘텐츠 작가야.  
-  대사는 감성적이지만 현실감 있게,  
-  짧고 중독성 있는 문장을 써줘.  
-  Z세대가 좋아할만한 트렌디한 표현,  
-  유머와 감정이 섞인 어법을 써줘.  
-  너무 시적이지 말고,  
-  마치 댓글처럼 리얼하게.
-  ✅ "현실 기반 감성"
-  ✅ "짧고 강한 문장"
-  ✅ "오글거림 금지"
-  ✅ "드립 or 반전 표현 한 줄 정도 허용"
-  ✅ "말투는 약간 대화체, 인터뷰톤"
-  ”
-  `;
+  const intro = buildIntroPrompt(title, memo);
   let userPrompt = "";
-  let fallbackPrompt = "";
 
   if (promptType === "Serendipity Blend") {
-    userPrompt = `
-${intro}
-
-당신은 무관한 키워드를 창의적으로 연결해 콘텐츠 전략을 짜는 전문가입니다.
+    userPrompt = `${intro}당신은 무관한 키워드를 창의적으로 연결해 콘텐츠 전략을 짜는 전문가입니다.
 ${title}과 전혀 다른 키워드하나를 엮어 새로운 아이디어(${title} + 새로운 키워드) 2~3개를 제시해주세요.
 
 아래는 예시일뿐 형식만 참고하고 내용은 당신이 생각한 내용으로 JSON 형식으로 주세요.
@@ -125,19 +121,16 @@ ${title}과 전혀 다른 키워드하나를 엮어 새로운 아이디어(${tit
 
   "st6": [
     { "idx": 1, "title": "5. 🌎 [대본 초안]" },
-    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
-    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]}
+    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"sfx_suggestion:"...",""bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
+    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]}
   ]
 }
 `;
   } else if (promptType === "Emotive Narrative") {
-    userPrompt = `
-${intro}
-
-당신은 감정몰입형 영상 전략가입니다.
+    userPrompt = `${intro}당신은 감정몰입형 영상 전략가입니다.
 이 영상에 어울리는 짧은 상황/스토리와 전략을 기승전결에 맞춰서 구성해주세요.
 
 아래는 예시일뿐 형식만 참고하고 내용은 당신이 생각한 내용으로 JSON 형식으로 보내주시오.
@@ -206,19 +199,15 @@ ${intro}
 
   "st6": [
     { "idx": 1, "title": "5. 🌎 [대본 초안]" },
-    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
-    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]}
+    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"sfx_suggestion:"...",""bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
+    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]}
   ]
-}
-`;
+}`;
   } else if (promptType === "Role Play Scenario") {
-    userPrompt = `
-${intro}
-
-당신은 역할극 기반 콘텐츠 기획자입니다.
+    userPrompt = `${intro}당신은 역할극 기반 콘텐츠 기획자입니다.
 시청자/전문가/제작자의 입장에서 각각 의견을 주고 전략을 구성해주세요.
 
 아래는 예시일뿐 형식만 참고하고 내용은 당신이 생각한 내용으로 JSON 형식으로 보내주시오.
@@ -287,14 +276,13 @@ ${intro}
 
   "st6": [
     { "idx": 1, "title": "5. 🌎 [대본 초안]" },
-    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
-    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"bgm_suggestion": "...","image_reference": ["...","..."]},
-    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"bgm_suggestion": "...","image_reference": ["...","..."]}
+    { "idx": 2, "seq": "도입", "script": "이 알바생, 뭔가 이상하다...", "factor": ["클로즈업" , "슬로우모션", "관객반응", "미스터리한 분위기"], "target": "호기심 유발 / 리얼리티 콘텐츠 소비자","clip_recommendation": ["슬로우모션 리액션 영상 (pexels: surprised man)","익살스러운 표정 B-roll","사람들 웃음 폭발 장면"],"sfx_suggestion:"...",""bgm_suggestion": "코믹 사운드트랙 - 'Sneaky Snitch' 스타일","image_reference": ["로날두 실루엣 일러스트","관중들의 반응 컷"]},
+    { "idx": 3, "seq": "갈등", "script": "손님 중 한 명이 시비를 건다: "당구 좀 치냐?", "factor": ["긴장감 있는 BGM", "도발 자막", "셋업 암시"], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 4, "seq": "전개", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 5, "seq": "전환", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...", "..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]},
+    { "idx": 6, "seq": "해결", "script": "...", "factor": [...], "target": "...","clip_recommendation": ["...","...","..."],"sfx_suggestion:"...",""bgm_suggestion": "...","image_reference": ["...","..."]}
   ]
-}
-`;
+}`;
   } else {
     throw new Error("지원되지 않는 프롬프트입니다.");
   }
@@ -309,9 +297,9 @@ ${intro}
           content: userPrompt,
         },
       ],
+      temperature: 0.9, // 감성 콘텐츠일 경우 권장
     });
 
-    // 백엔드에서 GPT 응답 파싱 후
     const content = response.choices[0].message.content;
     return JSON.parse(content);
   } catch (err) {
