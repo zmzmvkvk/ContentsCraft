@@ -9,13 +9,14 @@ import {
 } from "../api/firebaseService";
 import { useCrawlStore } from "../stores/useCrawlStore";
 import { fetchPixabayImages } from "../api/resource";
+import { saveVideoToNotion } from "../api/notionService";
 
 export default function VideoCard({ data, type }) {
   const [memo, setMemo] = useState(data.memo || "");
   const [detailStrategy, setDetailStrategy] = useState(
     data.detailStrategy || ""
   );
-  const [selectedPrompt, setSelectedPrompt] = useState("Role Play Scenario");
+  const [selectedPrompt, setSelectedPrompt] = useState("Factual Insight");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showStrategyModal, setShowStrategyModal] = useState(false);
@@ -154,6 +155,7 @@ export default function VideoCard({ data, type }) {
               <option value="Role Play Scenario">역할극 시나리오</option>
               <option value="Serendipity Blend">무작위 키워드 결합</option>
               <option value="Emotive Narrative">감정·스토리 몰입</option>
+              <option value="Factual Insight">사실기반 정보</option>
             </select>
             <textarea
               className="w-full border border-gray-600 bg-[#2c2c2c] text-white rounded-md p-2 text-sm mb-2"
@@ -192,9 +194,17 @@ export default function VideoCard({ data, type }) {
             </button>
             <button
               onClick={() => handleDownload(data.platform, data.url)}
-              className="rounded px-4 py-2 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
+              className="flex-auto rounded px-4 py-2 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
             >
               다운로드
+            </button>
+            <button
+              onClick={() =>
+                saveVideoToNotion({ ...data, memo, detailStrategy })
+              }
+              className="flex-auto rounded px-4 py-2 text-sm font-semibold bg-gray-700 hover:bg-blue-500 text-white"
+            >
+              📝 Notion 저장
             </button>
           </div>
 
